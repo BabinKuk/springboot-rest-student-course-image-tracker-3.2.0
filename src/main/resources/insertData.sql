@@ -1,0 +1,11 @@
+INSERT INTO course(id,title,instructor_id) values(1,'test course',null)
+INSERT INTO review(id,comment,course_id) values(1,'test review',1)
+INSERT INTO instructor_detail(id,youtube_channel,hobby) values(1,'ytb test','test hobby')
+INSERT INTO "user"(id,first_name,last_name,email,status) values(1,'firstNameInstr','lastNameInstr','firstNameInstr@babinkuk.com','ACTIVE')
+INSERT INTO instructor(id,salary,instructor_detail_id) values(1,1000,1)
+INSERT INTO image(id,user_id,file_name,data) values(1,1,'file1.jpg',X'746573742066696c652031')
+UPDATE course set instructor_id='1' where id=1
+INSERT INTO "user"(id,first_name,last_name,email,status) values(2,'firstNameStudent','lastNameStudent','firstNameStudent@babinkuk.com','ACTIVE')
+INSERT INTO student(id,street,city,zip_code) values(2,'Street','City','ZipCode')
+INSERT INTO image(id,user_id,file_name,data) values(2,2,'file2.jpg',X'746573742066696c652032')
+INSERT INTO course(course_id,student_id) values(1,2)

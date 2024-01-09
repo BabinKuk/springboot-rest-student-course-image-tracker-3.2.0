@@ -1,0 +1,94 @@
+## custom app properties
+#info:
+#  app:
+#    name: ${spring.application.name}
+#    desc: ${spring.application.desc}
+#    version: ${spring.application.version}
+#    author: Voivod
+#    build-timestamp: #{maven.build.timestamp}
+#    profiles:
+#      active: ${spring.profiles.active}
+
+# expose actuator metrics endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - 'health'
+          - 'info'
+        info:
+          env:
+            enabled: true
+
+test:
+  message: beastie boys
+
+## H2 Test Database creds
+#spring.datasource.url=jdbc:h2:mem:testdb
+#spring.datasource.driverClassName=org.h2.Driver
+#spring.datasource.username=sa
+#spring.datasource.password=password
+#spring.datasource.initialization-mode=always
+#spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+#spring.h2.console.enabled=true
+#spring.jpa.hibernate.ddl-auto=create-drop
+#spring.jpa.show-sql = true
+
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:testdb;NON_KEYWORDS=USER
+    username: sa
+    password: password
+    initialization-mode: always
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create-drop
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        format_sql: true
+#        globally_quoted_identifiers: true
+#        globally_quoted_identifiers_skip_column_definitions: false
+  h2:
+    console:
+      enabled: true
+
+sql:
+  script:
+    reset:
+      template: ALTER TABLE %s ALTER COLUMN id RESTART WITH 1
+    review:
+      insert: INSERT INTO REVIEW(id,comment,course_id) values(1,'test review',1)
+      delete: DELETE FROM REVIEW
+    course:
+      insert: INSERT INTO COURSE(id,title,instructor_id) values(1,'test course',null)
+      delete: DELETE FROM COURSE
+      update: UPDATE COURSE set instructor_id='1' where id=1
+    user:
+      insert-instructor: INSERT INTO "user"(id,first_name,last_name,email,status) values(1,'firstNameInstr','lastNameInstr','firstNameInstr@babinkuk.com','ACTIVE')
+      insert-student: INSERT INTO "user"(id,first_name,last_name,email,status) values(2,'firstNameStudent','lastNameStudent','firstNameStudent@babinkuk.com','ACTIVE')
+      delete: DELETE FROM "user"
+    instructor:
+      insert: INSERT INTO instructor(id,salary,instructor_detail_id) values(1,1000,1)
+      delete: DELETE FROM instructor
+    instructor-detail:
+      insert: INSERT INTO INSTRUCTOR_DETAIL(id,youtube_channel,hobby) values(1,'ytb test','test hobby')
+      delete: DELETE FROM INSTRUCTOR_DETAIL
+    student:
+      insert: INSERT INTO STUDENT(id,street,city,zip_code) values(2,'Street','City','ZipCode')
+      delete: DELETE FROM STUDENT
+    course-student:
+      insert: INSERT INTO COURSE_STUDENT(course_id,student_id) values(1,2)
+      delete: DELETE FROM COURSE_STUDENT
+    image:
+      insert-instructor: INSERT INTO IMAGE(id,user_id,file_name,data) values(1,1,'file1.jpg',X'746573742066696c652031')
+      insert-student: INSERT INTO IMAGE(id,user_id,file_name,data) values(2,2,'file2.jpg',X'746573742066696c652032')
+      delete: DELETE FROM IMAGE
