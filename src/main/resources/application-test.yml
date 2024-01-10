@@ -92,3 +92,9 @@ sql:
       insert-instructor: INSERT INTO IMAGE(id,user_id,file_name,data) values(1,1,'file1.jpg',X'746573742066696c652031')
       insert-student: INSERT INTO IMAGE(id,user_id,file_name,data) values(2,2,'file2.jpg',X'746573742066696c652032')
       delete: DELETE FROM IMAGE
+    change-log:
+      insert: INSERT INTO change_log(chlo_id,chlo_timestamp,chlo_user_id,chlo_table_id) values(1,curdate(),'user',1)
+      delete: DELETE FROM change_log
+    change-log-item:
+      insert: INSERT INTO change_log_item(chli_id,chli_field_name,chli_old_value,chli_old_value_id,chli_new_value,chli_new_value_id,chlo_id) values(1,'test field','old',1,'new',1,1)
+      delete: DELETE FROM change_log_item

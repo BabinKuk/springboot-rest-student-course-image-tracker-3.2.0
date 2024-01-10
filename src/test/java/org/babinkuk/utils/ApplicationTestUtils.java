@@ -3,6 +3,7 @@ package org.babinkuk.utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.entity.Address;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.entity.Instructor;
 import org.babinkuk.entity.InstructorDetail;
@@ -430,5 +431,26 @@ public class ApplicationTestUtils {
 		// update with new data
 		imageVO.setFileName(FILE_UPDATED);
 		return imageVO;
+	}
+	
+	public static void validateExistingChangeLog(ChangeLog chLog) {
+		nastaviti sutra!!!
+		assertNotNull(chLog,"ChangeLog null");
+		//assertNotNull(chLog.getTitle(),"getTitle() null");
+		//assertNotNull(chLog.getStudents(),"getStudents() null");
+		//assertNotNull(chLog.getReviews(),"getReviews() null");
+		//assertNotNull(chLog.getInstructor(),"getInstructor() null");
+		assertEquals(1, chLog.getChloId());
+		//assertEquals(COURSE, chLog.getTitle(),"getTitle() NOK");
+		//assertEquals(INSTRUCTOR_FIRSTNAME, chLog.getInstructor().getFirstName(),"getInstructor().getFirstName() NOK");
+		//assertEquals(1, chLog.getInstructor().getImages().size(),"getInstructor().getImages().size() NOK");
+		//assertEquals(1, chLog.getReviews().size(), "getReviews size not 1");
+		//assertTrue(chLog.getReviews().stream().anyMatch(review ->
+		//	review.getComment().equals(REVIEW) && review.getId() == 1
+		//));
+		//assertEquals(1, chLog.getStudents().size(), "getStudents size not 1");
+		//assertTrue(chLog.getStudents().stream().anyMatch(student ->
+		//	student.getFirstName().equals(STUDENT_FIRSTNAME) && student.getImages().size() == 1 && student.getId() == 2
+		//));
 	}
 }

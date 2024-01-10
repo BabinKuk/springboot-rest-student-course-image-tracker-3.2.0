@@ -7,7 +7,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.common.ApiResponse;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.dao.ChangeLogRepository;
 import org.babinkuk.dao.CourseRepository;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.entity.Instructor;
 import org.babinkuk.entity.Student;
@@ -31,11 +33,15 @@ public class CourseServiceImpl implements CourseService {
 	private CourseRepository courseRepository;
 	
 	@Autowired
+	private ChangeLogRepository changeLogRepository;
+	
+	@Autowired
 	private CourseMapper courseMapper;
 	
 	@Autowired
-	public CourseServiceImpl(CourseRepository courseRepository, CourseMapper courseMapper) {
+	public CourseServiceImpl(CourseRepository courseRepository, ChangeLogRepository changeLogRepository, CourseMapper courseMapper) {
 		this.courseRepository = courseRepository;
+		this.changeLogRepository = changeLogRepository;
 		this.courseMapper = courseMapper;
 	}
 	
@@ -46,6 +52,9 @@ public class CourseServiceImpl implements CourseService {
 	@Override
 	public CourseVO findById(int id) throws ObjectNotFoundException {
 		
+		// create and save ChangeLog
+		getChangeLog();
+				
 		Optional<Course> result = courseRepository.findById(id);
 		
 		Course course = null;
@@ -95,7 +104,10 @@ public class CourseServiceImpl implements CourseService {
 			// mapping
 			course = courseMapper.toEntity(courseVO);
 		}
-
+		
+		// create and save ChangeLog
+		getChangeLog();
+		
 		courseRepository.save(course);
 		
 		return response;
@@ -141,11 +153,17 @@ public class CourseServiceImpl implements CourseService {
 		
 		courseRepository.deleteById(id);
 		
+		// create and save ChangeLog
+		getChangeLog();
+				
 		return response;
 	}
 
 	@Override
 	public Iterable<CourseVO> getAllCourses() {
+		// create and save ChangeLog
+		getChangeLog();
+				
 		return courseMapper.toVO(courseRepository.findAll());
 	}
 
@@ -172,5 +190,21 @@ public class CourseServiceImpl implements CourseService {
 		}
 		
 		return courseVO;
+	}
+	
+	private ChangeLog getChangeLog() {
+		
+		Optional<ChangeLog> chLogEntity = changeLogRepository.findById(1);
+		ChangeLog changeLog = null;
+		
+		if (chLogEntity.isPresent()) {
+			changeLog = chLogEntity.get();
+			log.info("changeLog {}", changeLog);
+		} else {
+			// changeLog not found
+			log.info("changeLog not found");
+		}
+		
+		return changeLog;
 	}
 }

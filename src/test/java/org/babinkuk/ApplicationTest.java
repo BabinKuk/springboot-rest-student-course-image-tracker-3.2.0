@@ -28,6 +28,7 @@ import jakarta.persistence.PersistenceContext;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.babinkuk.dao.ChangeLogRepository;
 import org.babinkuk.dao.CourseRepository;
 import org.babinkuk.dao.ImageRepository;
 import org.babinkuk.dao.InstructorRepository;
@@ -40,6 +41,7 @@ import org.babinkuk.entity.Instructor;
 import org.babinkuk.entity.InstructorDetail;
 import org.babinkuk.entity.Review;
 import org.babinkuk.entity.Student;
+import org.babinkuk.service.ChangeLogService;
 import org.babinkuk.service.CourseService;
 import org.babinkuk.service.ImageService;
 import org.babinkuk.service.InstructorService;
@@ -51,6 +53,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -63,7 +66,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Transactional 
+@Transactional
+@AutoConfigureMockMvc
 public class ApplicationTest {
 	
 	public static final Logger log = LogManager.getLogger(ApplicationTest.class);
@@ -114,6 +118,12 @@ public class ApplicationTest {
 	
 	@Autowired
 	protected ImageRepository imageRepository;
+	
+	@Autowired
+	protected ChangeLogRepository changeLogRepository;
+	
+	@Autowired
+	protected ChangeLogService changeLogService;
 	
 	@Value("${info.app.name}")
 	String appName;
@@ -193,6 +203,12 @@ public class ApplicationTest {
 	@Value("${sql.script.image.delete}")
 	private String sqlDeleteImage;
 	
+	@Value("${sql.script.change-log.insert}")
+	private String sqlAddChangeLog;
+	
+	@Value("${sql.script.change-log.delete}")
+	private String sqlDeleteChangeLog;
+	
 	@BeforeAll
 	public static void setup() {
 		
@@ -203,6 +219,8 @@ public class ApplicationTest {
     public void setupDatabase() {
 		
 		insertData();
+		
+		jdbc.execute(sqlAddChangeLog);
 		
 //		// check
 //		List<Map<String,Object>> userList = new ArrayList<Map<String,Object>>();
@@ -254,6 +272,7 @@ public class ApplicationTest {
 		jdbc.execute(sqlDeleteInstructorDetail);
 		jdbc.execute(sqlDeleteImage);
 		jdbc.execute(sqlDeleteUser);
+		jdbc.execute(sqlDeleteChangeLog);
 		
 		// reset id column sequence
 		String[] tables = { "\"user\"", "course", "image", "review", "instructor_detail" };
