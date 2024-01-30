@@ -12,11 +12,13 @@ import org.babinkuk.dao.CourseRepository;
 import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.entity.Instructor;
+import org.babinkuk.entity.LogModule;
 import org.babinkuk.entity.Student;
 import org.babinkuk.exception.ObjectException;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.mapper.CourseMapper;
 import org.babinkuk.validator.ValidatorCodes;
+import org.babinkuk.validator.ValidatorType;
 import org.babinkuk.vo.CourseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,15 +35,15 @@ public class CourseServiceImpl implements CourseService {
 	private CourseRepository courseRepository;
 	
 	@Autowired
-	private ChangeLogRepository changeLogRepository;
+	private ChangeLogService changeLogService;
 	
 	@Autowired
 	private CourseMapper courseMapper;
 	
 	@Autowired
-	public CourseServiceImpl(CourseRepository courseRepository, ChangeLogRepository changeLogRepository, CourseMapper courseMapper) {
+	public CourseServiceImpl(CourseRepository courseRepository, ChangeLogService changeLogService, CourseMapper courseMapper) {
 		this.courseRepository = courseRepository;
-		this.changeLogRepository = changeLogRepository;
+		this.changeLogService = changeLogService;
 		this.courseMapper = courseMapper;
 	}
 	
@@ -62,7 +64,7 @@ public class CourseServiceImpl implements CourseService {
 		
 		if (result.isPresent()) {
 			course = result.get();
-			//log.info("course ({})", course);
+			log.info("course ({})", course);
 			
 			// mapping
 			courseVO = courseMapper.toVO(course);
@@ -107,6 +109,9 @@ public class CourseServiceImpl implements CourseService {
 		
 		// create and save ChangeLog
 		getChangeLog();
+		final ChangeLog changeLog = createChangeLog();
+		changeLogService.saveChangeLog(changeLog, courseMapper.toEntity(courseVO), entity);
+		
 		
 		courseRepository.save(course);
 		
@@ -194,7 +199,7 @@ public class CourseServiceImpl implements CourseService {
 	
 	private ChangeLog getChangeLog() {
 		
-		Optional<ChangeLog> chLogEntity = changeLogRepository.findById(1);
+		Optional<ChangeLog> chLogEntity = changeLogService.findById(1);
 		ChangeLog changeLog = null;
 		
 		if (chLogEntity.isPresent()) {
@@ -207,4 +212,23 @@ public class CourseServiceImpl implements CourseService {
 		
 		return changeLog;
 	}
+	
+	private ChangeLog createChangeLog() {
+		
+		final ChangeLog changeLog = new ChangeLog();
+		// this is to force a save of new item ... instead of update 
+		changeLog.setChloId(0);
+		// TODO in the future set real user
+		changeLog.setChloUserId(ValidatorType.COURSE.name());
+		
+		final LogModule logModule = new LogModule();
+		logModule.setLmId(RestModule.COURSE.getModuleId());
+		
+		changeLog.setLogModule(logModule);
+		// TODO in the future set real course id
+		changeLog.setChloTableId(RestModule.COURSE.getModuleId());
+		
+		return changeLog;
+	}
+	
 }

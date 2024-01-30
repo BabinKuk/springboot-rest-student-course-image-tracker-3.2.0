@@ -1,5 +1,7 @@
 package org.babinkuk.service;
 
+import java.util.Optional;
+
 import org.babinkuk.common.ApiResponse;
 import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.exception.ObjectException;
@@ -18,18 +20,20 @@ public interface ChangeLogService {
 	 * get Change Log
 	 * 
 	 * @param id
-	 * @return ChangeLog
+	 * @return Optional<ChangeLog>
 	 * @throws ObjectNotFoundException
 	 */
-	public ChangeLog findById(int id) throws ObjectNotFoundException;
+	public Optional<ChangeLog> findById(int id) throws ObjectNotFoundException;
 	
 	/**
 	 * save ChangeLog (on insert/update)
 	 * 
 	 * @param changeLog
+	 * @param original
+	 * @param current
 	 * @throws ObjectException
 	 */
-	public void saveChangeLog(ChangeLog changeLog) throws ObjectException;
+	public void saveChangeLog(ChangeLog changeLog, Object original, Object current) throws ObjectException;
 	
 	/**
 	 * delete ChangeLog

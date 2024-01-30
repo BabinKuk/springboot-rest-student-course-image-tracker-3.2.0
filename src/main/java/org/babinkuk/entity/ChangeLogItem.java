@@ -119,8 +119,8 @@ public class ChangeLogItem {
 		return "ChangeLogItem [chliId=" + chliId
 				//+ ", changeLog=" + changeLog
 				+ ", chliFieldName=" + chliFieldName
-				+ ", chliOldValueId=" + chliOldValueId + ", chliOldValue=" + chliOldValue + ", chliNewValue="
-				+ chliNewValue + ", chliNewValueId=" + chliNewValueId + "]";
+				+ ", chliOldValueId=" + chliOldValueId + ", chliOldValue=" + chliOldValue
+				+ ", chliNewValue="	+ chliNewValue + ", chliNewValueId=" + chliNewValueId + "]";
 	}
 	
 }

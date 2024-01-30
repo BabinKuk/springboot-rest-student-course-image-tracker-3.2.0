@@ -103,24 +103,30 @@ CREATE TABLE `course_student` (
   REFERENCES `student` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+DROP TABLE IF EXISTS `change_log_item`;
+
 DROP TABLE IF EXISTS `change_log`;
+
+DROP TABLE IF EXISTS `log_module`;
+
+CREATE TABLE `log_module` (
+  `lm_id` int(11) NOT NULL AUTO_INCREMENT,
+  `lm_description` varchar(256) DEFAULT NULL,
+  `lm_entity_name` varchar(256),
+  PRIMARY KEY (`lm_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 CREATE TABLE `change_log` (
   `chlo_id` int(11) NOT NULL AUTO_INCREMENT,
   `chlo_timestamp` timestamp(6) DEFAULT NULL,
   `chlo_user_id` varchar(256) DEFAULT NULL,
   `chlo_table_id` int(11) DEFAULT NULL,
-  /*`chlo_mod_id` int(11) DEFAULT NULL,
-  --KEY `FK_CHLO_MOD_idx` (`id`),
-  --CONSTRAINT `FK_USER_INSTRUCTOR` FOREIGN KEY (`id`) 
-  --REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  --KEY `FK_USER_INSTRUCTOR_idx` (`instructor_detail_id`),
-  --CONSTRAINT `FK_DETAIL` FOREIGN KEY (`instructor_detail_id`) 
-  --REFERENCES `instructor_detail` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION*/
-   PRIMARY KEY (`chlo_id`)
+  `chlo_lm_id` int(11) DEFAULT NULL,
+  KEY `FK_CHLO_LM_idx` (`chlo_lm_id`),
+  CONSTRAINT `FK_CHLO_LM` FOREIGN KEY (`chlo_lm_id`) 
+  REFERENCES `log_module` (`lm_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  PRIMARY KEY (`chlo_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
-
-DROP TABLE IF EXISTS `change_log_item`;
 
 CREATE TABLE `change_log_item` (
   `chli_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -135,5 +141,19 @@ CREATE TABLE `change_log_item` (
   CONSTRAINT `FK_CHANGE_LOG`  FOREIGN KEY (`chlo_id`) 
   REFERENCES `change_log` (`chlo_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+
+/*
+DROP TABLE IF EXISTS `generic_lookup_table`;
+
+CREATE TABLE `generic_lookup_table` (
+  `glt_entity_name` varchar(256),
+  `glt_custom_name` varchar(256) DEFAULT NULL,
+  `glt_rm_id` int(11) DEFAULT NULL,
+  KEY `FK_GLT_ENTITY_NAME_idx` (`glt_entity_name`),
+  CONSTRAINT `FK_GLT_RM` FOREIGN KEY (`glt_rm_id`) 
+  REFERENCES `rest_module` (`rm_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  PRIMARY KEY (`glt_entity_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+*/
 
 SET FOREIGN_KEY_CHECKS = 1;

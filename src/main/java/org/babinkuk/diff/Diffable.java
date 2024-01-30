@@ -1,4 +1,4 @@
-package org.babinkuk.vo.diff;
+package org.babinkuk.diff;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

@@ -1,33 +1,32 @@
 package org.babinkuk.service;
 
-import java.util.List;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.babinkuk.common.ApiResponse;
 import org.babinkuk.config.MessagePool;
 import org.babinkuk.dao.ChangeLogRepository;
-import org.babinkuk.dao.CourseRepository;
+import org.babinkuk.diff.DiffField;
+import org.babinkuk.diff.DiffGenerator;
+import org.babinkuk.diff.ObjectUtils;
 import org.babinkuk.entity.ChangeLog;
-import org.babinkuk.entity.Course;
-import org.babinkuk.entity.Instructor;
-import org.babinkuk.entity.Student;
-import org.babinkuk.exception.ObjectException;
+import org.babinkuk.entity.ChangeLogItem;
+import org.babinkuk.exception.ApplicationServiceException;
 import org.babinkuk.exception.ObjectNotFoundException;
-import org.babinkuk.mapper.CourseMapper;
-import org.babinkuk.validator.ValidatorCodes;
-import org.babinkuk.vo.CourseVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import static org.babinkuk.config.Api.*;
 
 @Service
 public class ChangeLogServiceImpl implements ChangeLogService {
 	
 	private final Logger log = LogManager.getLogger(getClass());
+	
+	private DiffGenerator diffGenerator;
 	
 	@Autowired
 	private ChangeLogRepository changeLogRepository;
@@ -47,7 +46,7 @@ public class ChangeLogServiceImpl implements ChangeLogService {
 	}
 
 	@Override
-	public ChangeLog findById(int id) throws ObjectNotFoundException {
+	public Optional<ChangeLog> findById(int id) throws ObjectNotFoundException {
 		
 		Optional<ChangeLog> result = changeLogRepository.findById(id);
 		
@@ -55,21 +54,42 @@ public class ChangeLogServiceImpl implements ChangeLogService {
 		
 		if (result.isPresent()) {
 			chlo = result.get();
-			log.info("chlo ({})", chlo);
-					
-			return chlo;
+			log.info("chlo ({})", chlo);	
 		} else {
 			// not found
 			String message = String.format(MessagePool.getMessage("Chlo with id=%s not found"), id);
 			log.warn(message);
 			throw new ObjectNotFoundException(message);
 		}
+		
+		return result;
 	}
 
 	@Override
-	public void saveChangeLog(ChangeLog changeLog) throws ObjectException {
-		// TODO Auto-generated method stub
-		changeLogRepository.save(changeLog);
+	public void saveChangeLog(ChangeLog changeLog, Object original, Object current) throws ApplicationServiceException {
+		
+		Set<ChangeLogItem> itemSet = new HashSet<ChangeLogItem>();
+		
+		// prepare changeLog
+		if (original != null && current != null) {
+			try {
+				this.removeBlanksFromObject(current);
+			} catch (ApplicationServiceException e) {
+				log.error("Failed to prepare change log : ", e.getMessage());
+			}
+		}
+		
+		itemSet = diffGenerator.difference(original, current, null, null, itemSet, null);
+		
+		if (!itemSet.isEmpty()) {
+			for (ChangeLogItem item : itemSet) {
+				item.setChangeLog(changeLog);
+			}
+			
+			changeLog.setChangeLogItems(itemSet);
+			
+			changeLogRepository.save(changeLog);
+		}	
 	}
 
 	@Override
@@ -77,5 +97,26 @@ public class ChangeLogServiceImpl implements ChangeLogService {
 		// TODO Auto-generated method stub
 		changeLogRepository.deleteById(id);
 	}
-
+	
+	private Object removeBlanksFromObject(Object obj) throws ApplicationServiceException {
+		try {
+			final Class<?> objectClass = obj.getClass();
+			for (Field field : ObjectUtils.getAllFields(objectClass)) {
+				// check field annotations and type
+				if (field.isAnnotationPresent(DiffField.class) && field.getType().equals(String.class)) {
+					Object fieldValue = ObjectUtils.getValueForField(field, obj);
+					String strFieldValue = fieldValue != null ? fieldValue.toString() : "";
+					if (StringUtils.isBlank(strFieldValue)) {
+						ObjectUtils.setValueForField(field, obj, null);
+					}
+				}
+			}
+		} catch (IllegalAccessException e) {
+			throw new ApplicationServiceException(e.getMessage());
+		}  catch (InvocationTargetException e) {
+			throw new ApplicationServiceException(e.getMessage());
+		}
+		
+		return obj;
+	}
 }

@@ -3,13 +3,14 @@
 //import java.io.Serializable;
 //import jakarta.persistence.Column;
 //import jakarta.persistence.Entity;
+//import jakarta.persistence.FetchType;
 //import jakarta.persistence.Id;
 //import jakarta.persistence.JoinColumn;
 //import jakarta.persistence.OneToOne;
 //import jakarta.persistence.Table;
 //
 //@Entity
-//@Table(name = "change_log")
+//@Table(name = "Generic_Lookup_Table")
 //public class GenericLookupTable implements Serializable {
 //
 //	/**
@@ -19,26 +20,27 @@
 //
 //	@Id
 //	//@GeneratedValue(strategy = GenerationType.IDENTITY)
-//	@Column(name = "glt_entity_name", length = 64)
+//	@Column(name = "glt_entity_name", length = 256)
 //	private String gltEntityName;
 //	
-//	@Column(name = "glt_custom_name", length = 64)
+//	@Column(name = "glt_custom_name", length = 256)
 //	private String gltCustomName;
 //	
 //	// mapping with rest_module table 
 //	// foreign key (rest_module.rm_id column)
-//	@OneToOne(/*cascade = CascadeType.ALL*/)
-//	@JoinColumn(name = "glt_mod_id")
-//	private RestModule gltModule;
+//	@OneToOne(fetch = FetchType.LAZY
+//			/*cascade = CascadeType.ALL*/)
+//	@JoinColumn(name = "glt_rm_id")
+//	private RestModule restModule;
 //	
 //	public GenericLookupTable() {
 //		// TODO Auto-generated constructor stub
 //	}
 //
-//	public GenericLookupTable(String gltEntityName, String gltCustomName, RestModule gltModule) {
+//	public GenericLookupTable(String gltEntityName, String gltCustomName, RestModule restModule) {
 //		this.gltEntityName = gltEntityName;
 //		this.gltCustomName = gltCustomName;
-//		this.gltModule = gltModule;
+//		this.restModule = restModule;
 //	}
 //
 //	public String getGltEntityName() {
@@ -57,18 +59,19 @@
 //		this.gltCustomName = gltCustomName;
 //	}
 //
-//	public RestModule getGltModule() {
-//		return gltModule;
+//	public RestModule getRestModule() {
+//		return restModule;
 //	}
 //
-//	public void setGltModule(RestModule gltModule) {
-//		this.gltModule = gltModule;
+//	public void setRestModule(RestModule restModule) {
+//		this.restModule = restModule;
 //	}
 //
 //	@Override
 //	public String toString() {
 //		return "GenericLookupTable [gltEntityName=" + gltEntityName
 //				+ ", gltCustomName=" + gltCustomName
-//				+ ", gltModule=" + gltModule + "]";
+//				//+ ", restModule=" + restModule
+//				+ "]";
 //	}
 //}

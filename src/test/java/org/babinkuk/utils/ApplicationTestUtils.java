@@ -434,7 +434,7 @@ public class ApplicationTestUtils {
 	}
 	
 	public static void validateExistingChangeLog(ChangeLog chLog) {
-		nastaviti sutra!!!
+		//nastaviti sutra!!!
 		assertNotNull(chLog,"ChangeLog null");
 		//assertNotNull(chLog.getTitle(),"getTitle() null");
 		//assertNotNull(chLog.getStudents(),"getStudents() null");

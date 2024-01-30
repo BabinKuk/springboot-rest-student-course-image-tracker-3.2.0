@@ -1,6 +1,6 @@
 package org.babinkuk.vo;
 
-import org.babinkuk.vo.diff.Diffable;
+import org.babinkuk.diff.Diffable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

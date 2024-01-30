@@ -30,6 +30,29 @@ public final class Api {
 	public static final String STUDENT_SAVE_SUCCESS = "student_save_success";
 	public static final String STUDENT_DELETE_SUCCESS = "student_delete_success";
 	
+	public static final String CHANGE_LOG_DATA_ENTRY_SUFIX = "insert";
+	public static final String CHANGE_LOG_DATA_DELETE_SUFIX = "delete";
+	public static final String CHANGE_LOG_DATA_UPDATE_SUFIX = "update";
+	
+	public static enum RestModule {
+		
+		STUDENT(1),
+		INSTRUCTOR(2),
+		COURSE(3),
+		REVIEW(4),
+		IMAGE(4);
+		
+		private int moduleId;
+		
+		private RestModule(int moduleId) {
+			this.moduleId = moduleId;
+		}
+		
+		public int getModuleId() {
+			return moduleId;
+		}
+	}
+	
 	public Api() {
 		// TODO Auto-generated constructor stub
 	}
