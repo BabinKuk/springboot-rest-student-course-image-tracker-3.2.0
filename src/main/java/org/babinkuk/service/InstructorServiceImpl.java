@@ -1,6 +1,5 @@
 package org.babinkuk.service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
@@ -13,13 +12,11 @@ import org.babinkuk.dao.InstructorRepository;
 import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.entity.Instructor;
-import org.babinkuk.entity.LogModule;
 import org.babinkuk.exception.ObjectException;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.mapper.InstructorMapper;
 import org.babinkuk.validator.ActionType;
 import org.babinkuk.validator.ValidatorCodes;
-import org.babinkuk.validator.ValidatorType;
 import org.babinkuk.vo.CourseVO;
 import org.babinkuk.vo.InstructorVO;
 import org.springframework.beans.factory.annotation.Autowired;

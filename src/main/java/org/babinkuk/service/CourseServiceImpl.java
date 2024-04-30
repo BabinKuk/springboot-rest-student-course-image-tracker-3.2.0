@@ -1,6 +1,5 @@
 package org.babinkuk.service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,18 +7,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.common.ApiResponse;
 import org.babinkuk.config.MessagePool;
-import org.babinkuk.dao.ChangeLogRepository;
 import org.babinkuk.dao.CourseRepository;
 import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.entity.Instructor;
-import org.babinkuk.entity.LogModule;
 import org.babinkuk.entity.Student;
 import org.babinkuk.exception.ObjectException;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.mapper.CourseMapper;
 import org.babinkuk.validator.ValidatorCodes;
-import org.babinkuk.validator.ValidatorType;
 import org.babinkuk.vo.CourseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,9 +51,6 @@ public class CourseServiceImpl implements CourseService {
 	@Override
 	public CourseVO findById(int id) throws ObjectNotFoundException {
 		
-		// create and save ChangeLog
-		//getChangeLog();
-				
 		Optional<Course> entity = courseRepository.findById(id);
 		
 		Course course = null;
@@ -100,9 +93,6 @@ public class CourseServiceImpl implements CourseService {
 			
 			originalCourseVO = courseMapper.toVO(course);
 			//log.info("mapping for update");
-			
-			log.info("original course {}", originalCourseVO);
-			log.info("current course {}", courseVO);
 			
 			// mapping
 			//course = courseMapper.toEntity(courseVO, course);
@@ -180,9 +170,6 @@ public class CourseServiceImpl implements CourseService {
 
 	@Override
 	public Iterable<CourseVO> getAllCourses() {
-		// create and save ChangeLog
-		getChangeLog();
-				
 		return courseMapper.toVO(courseRepository.findAll());
 	}
 
@@ -209,22 +196,6 @@ public class CourseServiceImpl implements CourseService {
 		}
 		
 		return courseVO;
-	}
-	
-	private ChangeLog getChangeLog() {
-		
-		Optional<ChangeLog> chLogEntity = changeLogService.findById(1);
-		ChangeLog changeLog = null;
-		
-		if (chLogEntity.isPresent()) {
-			changeLog = chLogEntity.get();
-			log.info("changeLog {}", changeLog);
-		} else {
-			// changeLog not found
-			log.info("changeLog not found");
-		}
-		
-		return changeLog;
 	}
 	
 }
