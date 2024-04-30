@@ -1,19 +1,25 @@
 package org.babinkuk.service;
 
+import java.util.Date;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.common.ApiResponse;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
 import org.babinkuk.dao.CourseRepository;
 import org.babinkuk.dao.ReviewRepository;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
+import org.babinkuk.entity.LogModule;
 import org.babinkuk.entity.Review;
 import org.babinkuk.exception.ObjectException;
 import org.babinkuk.exception.ObjectNotFoundException;
+import org.babinkuk.mapper.CourseMapper;
 import org.babinkuk.mapper.ReviewMapper;
 import org.babinkuk.validator.ValidatorCodes;
+import org.babinkuk.validator.ValidatorType;
 import org.babinkuk.vo.CourseVO;
 import org.babinkuk.vo.ReviewVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +42,18 @@ public class ReviewServiceImpl implements ReviewService {
 	private CourseRepository courseRepository;
 	
 	@Autowired
-	public ReviewServiceImpl(ReviewRepository reviewRepository, CourseRepository courseRepository, ReviewMapper reviewMapper) {
+	private CourseMapper courseMapper;
+	
+	@Autowired
+	private ChangeLogService changeLogService;
+	
+	@Autowired
+	public ReviewServiceImpl(ReviewRepository reviewRepository, CourseRepository courseRepository, ReviewMapper reviewMapper, CourseMapper courseMapper, ChangeLogService changeLogService) {
 		this.reviewRepository = reviewRepository;
 		this.courseRepository = courseRepository;
 		this.reviewMapper = reviewMapper;
+		this.courseMapper = courseMapper;
+		this.changeLogService = changeLogService;
 	}
 	
 	@Override
@@ -78,11 +92,14 @@ public class ReviewServiceImpl implements ReviewService {
 		Optional<Review> entity = reviewRepository.findById(reviewVO.getId());
 		
 		Review review = null;
+		ReviewVO originalReviewVO = null;
 		
 		if (entity.isPresent()) {
 			review = entity.get();
 			//log.info("review ({})", entity);
 			//log.info("mapping for update");
+			
+			originalReviewVO = reviewMapper.toVO(review);
 			
 			// mapping
 			review = reviewMapper.toEntity(reviewVO, review);
@@ -94,10 +111,13 @@ public class ReviewServiceImpl implements ReviewService {
 			review = reviewMapper.toEntity(reviewVO);
 		}
 		
-		//log.info("review ({})", review);
-
 		reviewRepository.save(review);
 		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.REVIEW);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalReviewVO, reviewVO);
+				
 		return response;
 	}
 	
@@ -112,13 +132,19 @@ public class ReviewServiceImpl implements ReviewService {
 		Optional<Course> entity = courseRepository.findById(courseVO.getId());
 		
 		Course course = null;
+		CourseVO currentCourseVO = null;
 		
 		if (entity.isPresent()) {
 			course = entity.get();
 			//log.info("courseVO ({})", courseVO);
 			
+			currentCourseVO = courseMapper.toVO(course);
+			
 			// add review
 			course.addReview(reviewMapper.toEntity(reviewVO));
+			
+			currentCourseVO = courseMapper.toVO(course);
+			
 		} else {
 			// not found
 			String message = String.format(MessagePool.getMessage(ValidatorCodes.ERROR_CODE_COURSE_ID_NOT_FOUND.getMessage()), courseVO.getId());
@@ -127,6 +153,12 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 		
 		courseRepository.save(course);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.COURSE);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, courseVO, currentCourseVO);
+		
 		
 		return response;
 	}
@@ -139,7 +171,26 @@ public class ReviewServiceImpl implements ReviewService {
 		response.setStatus(HttpStatus.OK);
 		response.setMessage(MessagePool.getMessage(REVIEW_DELETE_SUCCESS));
 		
+		Optional<Review> result = reviewRepository.findById(id);
+		
+		Review review = null;
+		ReviewVO reviewVO = null;
+		
+		if (result.isPresent()) {
+			review = result.get();
+			//log.info("review ({})", review);
+			
+			// mapping
+			reviewVO = reviewMapper.toVO(review);
+			//log.info("reviewVO ({})", reviewVO);
+		}
+		
 		reviewRepository.deleteById(id);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.REVIEW);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, reviewVO, null);
 		
 		return response;
 	}
@@ -148,4 +199,5 @@ public class ReviewServiceImpl implements ReviewService {
 	public Iterable<ReviewVO> getAllReviews() {
 		return reviewMapper.toVO(reviewRepository.findAll());
 	}
+	
 }

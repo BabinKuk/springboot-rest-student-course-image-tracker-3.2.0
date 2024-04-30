@@ -1,20 +1,25 @@
 package org.babinkuk.service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.common.ApiResponse;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
 import org.babinkuk.dao.CourseRepository;
 import org.babinkuk.dao.InstructorRepository;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.entity.Instructor;
+import org.babinkuk.entity.LogModule;
 import org.babinkuk.exception.ObjectException;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.mapper.InstructorMapper;
 import org.babinkuk.validator.ActionType;
 import org.babinkuk.validator.ValidatorCodes;
+import org.babinkuk.validator.ValidatorType;
 import org.babinkuk.vo.CourseVO;
 import org.babinkuk.vo.InstructorVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +40,17 @@ public class InstructorServiceImpl implements InstructorService {
 	@Autowired
 	private CourseRepository courseRepository;
 	
+	@Autowired
+	private ChangeLogService changeLogService;
+	
 	private InstructorMapper instructorMapper;
 	
 	@Autowired
-	public InstructorServiceImpl(InstructorRepository instructorRepository, CourseRepository courseRepository, InstructorMapper instructorMapper) {
+	public InstructorServiceImpl(InstructorRepository instructorRepository, CourseRepository courseRepository, InstructorMapper instructorMapper, ChangeLogService changeLogService) {
 		this.instructorRepository = instructorRepository;
 		this.courseRepository = courseRepository;
 		this.instructorMapper = instructorMapper;
+		this.changeLogService = changeLogService;
 	}
 	
 	public InstructorServiceImpl() {
@@ -112,11 +121,14 @@ public class InstructorServiceImpl implements InstructorService {
 		Optional<Instructor> entity = instructorRepository.findById(instructorVO.getId());
 		
 		Instructor instructor = null;
+		InstructorVO originalInstructorVO = null;
 		
 		if (entity.isPresent()) {
 			instructor = entity.get();
 			//log.info("instructor ({})", entity);
 			//log.info("mapping for update");
+			
+			originalInstructorVO = instructorMapper.toVO(instructor);
 			
 			// mapping
 			instructor = instructorMapper.toEntity(instructorVO, instructor);
@@ -129,6 +141,11 @@ public class InstructorServiceImpl implements InstructorService {
 		}
 		
 		instructorRepository.save(instructor);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.INSTRUCTOR);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalInstructorVO, instructorVO);
 		
 		return response;
 	}
@@ -146,14 +163,16 @@ public class InstructorServiceImpl implements InstructorService {
 		Optional<Instructor> result = instructorRepository.findById(id);
 		
 		Instructor instructor = null;
+		InstructorVO originalInstructorVO = null;
 		
 		if (result.isPresent()) {
-			
 			instructor = result.get();
+			
+			originalInstructorVO = instructorMapper.toVO(instructor);
 			
 			// get courses for the instructor
 			List<Course> courses = instructor.getCourses();
-			log.info("courses " + courses);
+			//log.info("courses " + courses);
 			
 			// break association of all courses for the instructor
 			// if instructor is deleted DO NOT delete course
@@ -165,6 +184,11 @@ public class InstructorServiceImpl implements InstructorService {
 		}
 		
 		instructorRepository.deleteById(id);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.INSTRUCTOR);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalInstructorVO, null);
 		
 		return response;
 	}
@@ -187,7 +211,7 @@ public class InstructorServiceImpl implements InstructorService {
 		Optional<Instructor> instructorEntity = instructorRepository.findById(instructorVO.getId());
 		
 		Instructor instructor = null;
-		
+
 		if (instructorEntity.isPresent()) {
 			instructor = instructorEntity.get();
 			//log.info("instructor ({})", entity);
@@ -225,6 +249,15 @@ public class InstructorServiceImpl implements InstructorService {
 		
 		instructorRepository.save(instructor);
 		
+		InstructorVO originalInstructorVO = instructorVO;
+		InstructorVO currentiInstructorVO = instructorMapper.toVO(instructor);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.INSTRUCTOR);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalInstructorVO, currentiInstructorVO);
+				
 		return response;
 	}
+	
 }

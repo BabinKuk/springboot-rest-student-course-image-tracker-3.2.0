@@ -9,8 +9,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.common.ApiResponse;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
 import org.babinkuk.dao.CourseRepository;
 import org.babinkuk.dao.StudentRepository;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.entity.Instructor;
 import org.babinkuk.entity.Student;
@@ -20,6 +22,7 @@ import org.babinkuk.mapper.StudentMapper;
 import org.babinkuk.validator.ActionType;
 import org.babinkuk.validator.ValidatorCodes;
 import org.babinkuk.vo.CourseVO;
+import org.babinkuk.vo.InstructorVO;
 import org.babinkuk.vo.StudentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,13 +41,17 @@ public class StudentServiceImpl implements StudentService {
 	@Autowired
 	private CourseRepository courseRepository;
 
+	@Autowired
+	private ChangeLogService changeLogService;
+
 	private StudentMapper studentMapper;
 	
 	@Autowired
-	public StudentServiceImpl(StudentRepository studentRepository, CourseRepository courseRepository, StudentMapper studentMapper) {
+	public StudentServiceImpl(StudentRepository studentRepository, CourseRepository courseRepository, StudentMapper studentMapper, ChangeLogService changeLogService) {
 		this.studentRepository = studentRepository;
 		this.courseRepository = courseRepository;
 		this.studentMapper = studentMapper;
+		this.changeLogService = changeLogService;
 	}
 	
 	public StudentServiceImpl() {
@@ -114,10 +121,13 @@ public class StudentServiceImpl implements StudentService {
 		Optional<Student> entity = studentRepository.findById(studentVO.getId());
 		
 		Student student = null;
+		StudentVO originalStudentVO = null;
 		
 		if (entity.isPresent()) {
 			student = entity.get();
 			//log.info("mapping for update");
+			
+			originalStudentVO = studentMapper.toVO(student);
 			
 			// mapping
 			student = studentMapper.toEntity(studentVO, student);
@@ -130,6 +140,11 @@ public class StudentServiceImpl implements StudentService {
 		}
 		
 		studentRepository.save(student);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.STUDENT);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalStudentVO, studentVO);
 		
 		return response;
 	}
@@ -147,9 +162,12 @@ public class StudentServiceImpl implements StudentService {
 		Optional<Student> result = studentRepository.findById(id);
 		
 		Student student = null;
+		StudentVO originalStudentVO = null;
 		
 		if (result.isPresent()) {
 			student = result.get();
+			
+			originalStudentVO = studentMapper.toVO(student);
 			
 			// get courses for the student
 			List<Course> courses = student.getCourses();
@@ -165,6 +183,11 @@ public class StudentServiceImpl implements StudentService {
 		
 		studentRepository.deleteById(id);
 		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.STUDENT);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalStudentVO, null);
+
 		return response;
 	}
 
@@ -220,6 +243,14 @@ public class StudentServiceImpl implements StudentService {
 		}
 		
 		studentRepository.save(student);
+		
+		StudentVO originalStudentVO = studentVO;
+		StudentVO currentStudentVO = studentMapper.toVO(student);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.STUDENT);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalStudentVO, currentStudentVO);
 		
 		return response;
 	}

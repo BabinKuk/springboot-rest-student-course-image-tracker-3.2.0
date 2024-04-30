@@ -36,20 +36,30 @@ public final class Api {
 	
 	public static enum RestModule {
 		
-		STUDENT(1),
-		INSTRUCTOR(2),
-		COURSE(3),
-		REVIEW(4),
-		IMAGE(4);
+		STUDENT(1, "STUDENT"),
+		INSTRUCTOR(2, "INSTRUCTOR"),
+		COURSE(3, "COURSE"),
+		REVIEW(4, "REVIEW"),
+		IMAGE(4, "IMAGE");
 		
 		private int moduleId;
+		private String label;
 		
 		private RestModule(int moduleId) {
 			this.moduleId = moduleId;
 		}
 		
+		private RestModule(int moduleId, String label) {
+			this.moduleId = moduleId;
+			this.label = label;
+		}
+		
 		public int getModuleId() {
 			return moduleId;
+		}
+		
+		public String getLabel() {
+			return label;
 		}
 	}
 	

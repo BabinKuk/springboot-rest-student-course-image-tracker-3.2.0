@@ -11,9 +11,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.babinkuk.config.Api;
 import org.babinkuk.entity.ChangeLogItem;
@@ -33,8 +36,10 @@ public class DiffGenerator {
 	
 	private final Map<String, DataResolver> resolvers = new HashMap<String, DataResolver>();
 	
-	//private ClientMonitoringIndicatorRepository clientMonitoringIndicatorRepository;
-
+	public DiffGenerator() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	//public DiffGenerator(ClientMonitoringIndicatorRepository clientMonitoringIndicatorRepository) {
 	//	this.clientMonitoringIndicatorRepository = clientMonitoringIndicatorRepository;
 	//}
@@ -343,11 +348,13 @@ public class DiffGenerator {
 	 * @return
 	 */
     public Set<ChangeLogItem> difference(Object original, Object current, Object originalId, Object currentId, Set<ChangeLogItem> itemSet, String tag) {
+    	log.info("original {}", original);
+    	log.info("current {}", current);
     	
     	Set<ChangeLogItem> returnValue = itemSet;
     	
     	if (original != null && current != null && original.getClass() != current.getClass()) {
-    		throw new RuntimeException("'original' and 'current' arguments not same,  this usually happens with" +
+    		throw new RuntimeException("'original' and 'current' arguments not same, this usually happens with" +
     				" persistent collections (since they are accessed with a proxy object)." +
     				" Original:" + original.getClass().getName() + " Current:" + current.getClass().getName());
     	}
@@ -357,6 +364,8 @@ public class DiffGenerator {
     	
     	// case when both values are not null:
     	if (original != null && current != null) {
+    		log.info("case when both values are not null");
+    		
     		if (tag == null) {
     			tag = original.getClass().getSimpleName();
     		}
@@ -367,11 +376,11 @@ public class DiffGenerator {
     		
     		final String prefix = tag;
     		final Class<?> objectClass = original.getClass();
-    		log.debug("Diffing objects of type: " + objectClass.getSimpleName());
+    		log.info("Diffing objects of type: " + objectClass.getSimpleName());
     		
-    		// Check whether the class is Diffable.
+    		// Check whether the class is Diffable
     		if (objectClass.isAnnotationPresent(Diffable.class)) {
-    			log.debug(objectClass.getSimpleName() + " is Diffable");
+    			log.info(objectClass.getSimpleName() + " is Diffable");
 
     			for (Field field : ObjectUtils.getAllFields(objectClass)) {
     				// Only check fields annotated with DiffField
@@ -396,7 +405,7 @@ public class DiffGenerator {
     					}
     					
     					annotation = field.getAnnotation(DiffField.class);
-    					String dataType= annotation.type();
+    					String dataType = annotation.type();
     					DataResolver dataResolver = null;
     					
     					if (StringUtils.isNotBlank(dataType)) {
@@ -433,45 +442,49 @@ public class DiffGenerator {
                         	//e.printStackTrace();
                         }
 
-    					// Recursively call hr.hpb.cif.dao.util.diff.DiffGenerator.difference() on the two values, appending the field name to the tag.
-    					returnValue = difference(originalFieldValue, currentFieldValue, originalFieldIdValue, currentFieldIdValue,
-						returnValue, prefix+field.getName());
+    					// Recursively call diff.DiffGenerator.difference() on the two values, appending the field name to the tag.
+    					log.info("Recursively call diff.DiffGenerator.difference() {}", prefix + field.getName());
+    					returnValue = difference(originalFieldValue, currentFieldValue, originalFieldIdValue, currentFieldIdValue, returnValue, prefix+field.getName());
     				}
     			}
     		} else {
     			// For non-Diffable classes...
-    			log.debug(objectClass.getSimpleName() + " is not Diffable.");
+    			log.info(objectClass.getSimpleName() + " is not Diffable.");
     			
     			// Iterate through iterable objects
     			if (original instanceof Iterable) {//collection, list, queue, set
-    				log.debug(objectClass.getSimpleName() + " is Iterable.");
-    				Collection<?> orgColl= (Collection<?>) original;
-    				Collection<?> curColl= (Collection<?>) current;
+    				log.info(objectClass.getSimpleName() + " is Iterable.");
+    				Collection<?> orgColl = (Collection<?>) original;
+    				Collection<?> curColl = (Collection<?>) current;
     				
-    				//TODO
+    				log.info("orgColl {}", orgColl);
+    				log.info("curColl {}", curColl);
+    				
+    				// copy list
     				Collection<?> addedElements = curColl;
     				addedElements = subtract(addedElements, orgColl);
-    				//                    addedElements.removeAll(orgColl);
+    				//addedElements.removeAll(orgColl);
+    				log.info("addedElements {}", addedElements);
+    				
     				Collection<?> deletedElements = orgColl;
     				deletedElements = subtract(deletedElements, curColl);
-    				//                    deletedElements.removeAll(curColl);
-    				//                    Collection<?> commonElements = orgColl;
-    				//                    commonElements.retainAll(curColl);
+    				//deletedElements.removeAll(curColl);
+    				//Collection<?> commonElements = orgColl;
+    				//commonElements.retainAll(curColl);
+    				log.info("deletedElements {}", deletedElements);
     				
-    				for(Object added : addedElements){
+    				for(Object added : addedElements) {
+    					log.info("added FIXME id? {}", added);
     					//FIXME id?
     					returnValue = difference(null, added, null, null, returnValue, prefix);
     				}
     				
-    				for(Object deleted : deletedElements){
+    				for(Object deleted : deletedElements) {
+    					log.info("deleted FIXME id? {}", deleted);
     					//FIXME id?
     					returnValue = difference(deleted, null, null, null, returnValue, prefix);
     				}
     				
-    				//                    for(Object obj : commonElements){ // BZ commented out - no functionality
-    				//                            //obj.
-    				//                    }
-
     			// Iterate through map keys
     			} else if (original instanceof Map) {
     				Map<?, ?> oMap = (Map<?, ?>) original;
@@ -491,30 +504,31 @@ public class DiffGenerator {
     					Object cObj = cMap.get(key);
     					
     					if (oObj != null && cObj != null) {
-    						if (oObj.getClass().getSimpleName().equalsIgnoreCase("PersonCorporateVO")) {
-    							returnValue = difference(oObj, cObj, key, key, returnValue, prefix+ oObj.toString());
-    						}
-    						else if (oObj.getClass().getSimpleName().equalsIgnoreCase("ContactPersonVO")) {
-    							returnValue = difference(oObj, cObj, key, key, returnValue, prefix+key);
-    						}
-    						else if(oObj.getClass().getSimpleName().equalsIgnoreCase("ClientProductDetailVO")) {
-    							returnValue = difference(oObj, cObj, key, key, returnValue, "ClientProductDetailVO."+key);
-
-								//} else if(prefix.contains("ClientMonitoringVO.indicatorValuesMap.")){
-								//                  returnValue = difference(oObj, cObj, key, key, returnValue, prefix + Constants.CLIENT_MONITORING_INDICATOR_GROUP.findById(key.toString()).getName());
-								//} else if(prefix.contains("RetailClientVO.approvalDetailsMap.") || prefix.contains("CorporateClientVO.approvalDetailsMap.")){
-								//                      returnValue = difference(oObj, cObj, key, key, returnValue, prefix + Constants.APPROVAL_TYPE.getApprovalTypeById((long)key));
-    						} else {
+//    						if (oObj.getClass().getSimpleName().equalsIgnoreCase("PersonCorporateVO")) {
+//    							returnValue = difference(oObj, cObj, key, key, returnValue, prefix + oObj.toString());
+//    						}
+//    						else if (oObj.getClass().getSimpleName().equalsIgnoreCase("ContactPersonVO")) {
+//    							returnValue = difference(oObj, cObj, key, key, returnValue, prefix+key);
+//    						}
+//    						else if(oObj.getClass().getSimpleName().equalsIgnoreCase("ClientProductDetailVO")) {
+//    							returnValue = difference(oObj, cObj, key, key, returnValue, "ClientProductDetailVO."+key);
+//
+//								//} else if(prefix.contains("ClientMonitoringVO.indicatorValuesMap.")){
+//								//                  returnValue = difference(oObj, cObj, key, key, returnValue, prefix + Constants.CLIENT_MONITORING_INDICATOR_GROUP.findById(key.toString()).getName());
+//								//} else if(prefix.contains("RetailClientVO.approvalDetailsMap.") || prefix.contains("CorporateClientVO.approvalDetailsMap.")){
+//								//                      returnValue = difference(oObj, cObj, key, key, returnValue, prefix + Constants.APPROVAL_TYPE.getApprovalTypeById((long)key));
+//    						} else {
     							returnValue = difference(oObj, cObj, key, key, returnValue, prefix);
-    						}
+//    						}
     					} else {
-    						// Recursively call hr.hpb.cif.dao.util.diff.DiffGenerator.difference() on the corresponding vaues,
+    						// Recursively call diff.DiffGenerator.difference() on the corresponding values,
     						// without appending prefix.
     						returnValue = difference(oObj, cObj, key, key, returnValue, prefix);
     					}
     				}
     			// If class isn't Diffable, not iterable, and not a map, simply use equals() to find any differences
-    			} else if(!original.equals(current)) {
+    			} else if (!original.equals(current)) {
+    				log.info("class isn't Diffable");
     				boolean addChangeLogItem = true;
     				// BZ: special check for BigDecimals because
     				// equals considers two BigDecimal objects equal only if they are equal in value and scale
@@ -538,12 +552,14 @@ public class DiffGenerator {
     					currentString = current.toString();
     				}
     				
-    				// BZ #23132
     				if (addChangeLogItem)
     					addChangeLogItem(tag, Api.CHANGE_LOG_DATA_UPDATE_SUFIX, originalId, originalString, currentId, currentString, itemSet);
     			}
+    			 else if (original.equals(current)) {
+    				 log.info("(" + original + ").equals(" + current + ") {}", original.equals(current));
+    			 }
     		}
-    	// Special case when either, but not both, is null.  If both are null, there is no difference to record.
+    	// Special case when either, but not both, is null. If both are null, there is no difference to record.
     	} else if (original != current) {
     		boolean addChLogItem = true; // BZ #23132
     		
@@ -610,16 +626,12 @@ public class DiffGenerator {
 					}
     			} else {
 
-/*              if(current.getClass().getSimpleName().equalsIgnoreCase("MonitoringIndicatorVO")){
-
-                                             currentString = clientMonitoringIndicatorRepository.getOne(Long.parseLong(current.toString())).getCmiName();
-
-                              } else {
-*/
-                                              currentString = current.toString();
-
-  //                            }
-
+    				/*if(current.getClass().getSimpleName().equalsIgnoreCase("MonitoringIndicatorVO")){
+                         currentString = clientMonitoringIndicatorRepository.getOne(Long.parseLong(current.toString())).getCmiName();
+                      } else {
+    				*/
+    				currentString = current.toString();
+    				//}
                 }
     			
     			if (addChLogItem) {  // BZ #23132
@@ -659,6 +671,7 @@ public class DiffGenerator {
                 }
             }
         }
+    	
         return returnValue;
 	}
 
@@ -690,17 +703,27 @@ public class DiffGenerator {
 		item.setChliNewValue(StringUtils.isNotBlank(newValue) ? newValue : "-");
 		item.setChliNewValueId((newId != null) ? (int) newId : 0);
 		
+		log.info(item.toString());
 		itemSet.add(item);
 	}
 	
-	public static Collection subtract(final Collection a, final Collection b) {
-		ArrayList list = new ArrayList(a);
-		Iterator it =  b.iterator();
+	public Collection subtract(final Collection a, final Collection b) {
 		
-		while(it.hasNext()) {
+		/*
+		Collection<?> addedElements = curColl;
+    	addedElements = subtract(addedElements, orgColl);
+		
+		Collection<?> deletedElements = orgColl;
+		deletedElements = subtract(deletedElements, curColl);
+		*/
+		ArrayList list = new ArrayList(a);
+		Iterator it = b.iterator();
+		
+		while (it.hasNext()) {
 			list.remove(it.next());
 		}
 		
 		return list;
+
 	}
 }

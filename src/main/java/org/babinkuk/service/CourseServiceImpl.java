@@ -1,5 +1,6 @@
 package org.babinkuk.service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,15 +56,15 @@ public class CourseServiceImpl implements CourseService {
 	public CourseVO findById(int id) throws ObjectNotFoundException {
 		
 		// create and save ChangeLog
-		getChangeLog();
+		//getChangeLog();
 				
-		Optional<Course> result = courseRepository.findById(id);
+		Optional<Course> entity = courseRepository.findById(id);
 		
 		Course course = null;
 		CourseVO courseVO = null;
 		
-		if (result.isPresent()) {
-			course = result.get();
+		if (entity.isPresent()) {
+			course = entity.get();
 			log.info("course ({})", course);
 			
 			// mapping
@@ -90,15 +91,23 @@ public class CourseServiceImpl implements CourseService {
 		Optional<Course> entity = courseRepository.findById(courseVO.getId());
 		
 		Course course = null;
-		
+		CourseVO originalCourseVO = null;
+				
 		if (entity.isPresent()) {
 			course = entity.get();
-			//log.info("courseVO ({})", courseVO);
+			
+			log.info("original entity {}", entity.get());
+			
+			originalCourseVO = courseMapper.toVO(course);
 			//log.info("mapping for update");
+			
+			log.info("original course {}", originalCourseVO);
+			log.info("current course {}", courseVO);
 			
 			// mapping
 			//course = courseMapper.toEntity(courseVO, course);
 			course.setTitle(courseVO.getTitle());
+			
 		} else {
 			// course not found
 			//log.info("mapping for insert");
@@ -107,13 +116,13 @@ public class CourseServiceImpl implements CourseService {
 			course = courseMapper.toEntity(courseVO);
 		}
 		
-		// create and save ChangeLog
-		getChangeLog();
-		final ChangeLog changeLog = createChangeLog();
-		changeLogService.saveChangeLog(changeLog, courseMapper.toEntity(courseVO), entity);
-		
-		
+		// save courses
 		courseRepository.save(course);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.COURSE);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalCourseVO, courseVO);
 		
 		return response;
 	}
@@ -130,6 +139,7 @@ public class CourseServiceImpl implements CourseService {
 		Optional<Course> result = courseRepository.findById(id);
 		
 		Course course = null;
+		CourseVO originalCourseVO = null;
 		
 		if (result.isPresent()) {
 			course = result.get();
@@ -154,13 +164,17 @@ public class CourseServiceImpl implements CourseService {
 					student.removeCourse(course);
 				}
 			}
+			
+			originalCourseVO = courseMapper.toVO(course);
 		}
 		
 		courseRepository.deleteById(id);
 		
 		// create and save ChangeLog
-		getChangeLog();
-				
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.COURSE);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalCourseVO, null);
+		
 		return response;
 	}
 
@@ -209,24 +223,6 @@ public class CourseServiceImpl implements CourseService {
 			// changeLog not found
 			log.info("changeLog not found");
 		}
-		
-		return changeLog;
-	}
-	
-	private ChangeLog createChangeLog() {
-		
-		final ChangeLog changeLog = new ChangeLog();
-		// this is to force a save of new item ... instead of update 
-		changeLog.setChloId(0);
-		// TODO in the future set real user
-		changeLog.setChloUserId(ValidatorType.COURSE.name());
-		
-		final LogModule logModule = new LogModule();
-		logModule.setLmId(RestModule.COURSE.getModuleId());
-		
-		changeLog.setLogModule(logModule);
-		// TODO in the future set real course id
-		changeLog.setChloTableId(RestModule.COURSE.getModuleId());
 		
 		return changeLog;
 	}

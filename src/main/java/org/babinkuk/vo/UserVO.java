@@ -1,8 +1,6 @@
 package org.babinkuk.vo;
 
 import java.util.List;
-import java.util.SortedMap;
-
 import org.babinkuk.entity.Status;
 
 public abstract class UserVO {

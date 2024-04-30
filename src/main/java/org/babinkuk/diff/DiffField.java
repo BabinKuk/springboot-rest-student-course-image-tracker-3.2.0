@@ -7,8 +7,14 @@ import java.lang.annotation.Target;
 
 /**
  * This annotation should be used with {@link Diffable}
+ * indicates the field to which this annotation applies 
+ * <p/>
+ * this annotation cn take as a parameter the user-defines application-specific data type
+ * of th field, used by <code>DiffGenerator.difference</code> to determine which DataResolver to use
+ * <p/>
+ * This annotaton has no meaning if used in a class not annotated with Diffable
  * 
- * @author Nikola
+ * @author BabinKuk
  *
  */
 @Retention(RetentionPolicy.RUNTIME)

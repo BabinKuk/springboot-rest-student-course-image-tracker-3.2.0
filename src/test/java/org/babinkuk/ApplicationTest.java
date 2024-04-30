@@ -66,6 +66,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @ActiveProfiles("test")
+
 @Transactional
 @AutoConfigureMockMvc
 public class ApplicationTest {

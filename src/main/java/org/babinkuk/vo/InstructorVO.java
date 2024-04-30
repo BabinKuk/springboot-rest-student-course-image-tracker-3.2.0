@@ -162,7 +162,7 @@ public class InstructorVO extends UserVO {
 	public void setCourses(List<CourseVO> courses) {
 		this.courses = courses;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "InstructorVO [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
@@ -172,4 +172,77 @@ public class InstructorVO extends UserVO {
 				+ "]";
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((courses == null) ? 0 : courses.hashCode());
+		result = prime * result + ((email == null) ? 0 : email.hashCode());
+		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
+		result = prime * result + ((hobby == null) ? 0 : hobby.hashCode());
+		result = prime * result + id;
+		result = prime * result + ((images == null) ? 0 : images.hashCode());
+		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
+		result = prime * result + ((salary == null) ? 0 : salary.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((youtubeChannel == null) ? 0 : youtubeChannel.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		InstructorVO other = (InstructorVO) obj;
+		if (courses == null) {
+			if (other.courses != null)
+				return false;
+		} else if (!courses.equals(other.courses))
+			return false;
+		if (email == null) {
+			if (other.email != null)
+				return false;
+		} else if (!email.equals(other.email))
+			return false;
+		if (firstName == null) {
+			if (other.firstName != null)
+				return false;
+		} else if (!firstName.equals(other.firstName))
+			return false;
+		if (hobby == null) {
+			if (other.hobby != null)
+				return false;
+		} else if (!hobby.equals(other.hobby))
+			return false;
+		if (id != other.id)
+			return false;
+		if (images == null) {
+			if (other.images != null)
+				return false;
+		} else if (!images.equals(other.images))
+			return false;
+		if (lastName == null) {
+			if (other.lastName != null)
+				return false;
+		} else if (!lastName.equals(other.lastName))
+			return false;
+		if (salary == null) {
+			if (other.salary != null)
+				return false;
+		} else if (!salary.equals(other.salary))
+			return false;
+		if (status != other.status)
+			return false;
+		if (youtubeChannel == null) {
+			if (other.youtubeChannel != null)
+				return false;
+		} else if (!youtubeChannel.equals(other.youtubeChannel))
+			return false;
+		return true;
+	}
+	
 }

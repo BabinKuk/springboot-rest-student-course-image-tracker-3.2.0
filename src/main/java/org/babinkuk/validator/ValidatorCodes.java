@@ -28,7 +28,8 @@ public enum ValidatorCodes {
 	ERROR_CODE_TITLE_ALREADY_EXIST("error_code_title_already_exist"),
 	ERROR_CODE_FILE_NAME_EMPTY("error_code_file_name_empty"),
 	ERROR_CODE_FILE_DATA_EMPTY("error_code_file_data_empty"),
-	ERROR_CODE_FILE_SIZE_INVALID("error_code_file_size_invalid");
+	ERROR_CODE_FILE_SIZE_INVALID("error_code_file_size_invalid"),
+	ERROR_CODE_CHANGELOG_ID_NOT_FOUND("error_code_changelog_id_not_found");
 	
 	private String message;
 	

@@ -27,13 +27,13 @@ public class CourseVO {
 	@NotBlank(message = "error_code_title_empty")
 	private String title;
 	
-	@DiffField
+	@DiffField(id = "id")
 	private InstructorVO instructorVO;
 	
-	@DiffField
+	@DiffField(id = "id")
 	private List<ReviewVO> reviewsVO = new ArrayList<ReviewVO>();
 	
-	@DiffField
+	@DiffField(id = "id")
 	private List<StudentVO> studentsVO = new ArrayList<StudentVO>();
 	
 	public CourseVO() {
@@ -111,9 +111,55 @@ public class CourseVO {
 //
 //		setStudentsVO(tempStudentsVO);
 //	}
-	
+		
 	@Override
 	public String toString() {
 		return "CourseVO [id=" + id + ", title=" + title + ", instructorVO=" + instructorVO + ", studentsVO=" + studentsVO + ", reviewsVO=" + reviewsVO + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		result = prime * result + ((instructorVO == null) ? 0 : instructorVO.hashCode());
+		result = prime * result + ((reviewsVO == null) ? 0 : reviewsVO.hashCode());
+		result = prime * result + ((studentsVO == null) ? 0 : studentsVO.hashCode());
+		result = prime * result + ((title == null) ? 0 : title.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CourseVO other = (CourseVO) obj;
+		if (id != other.id)
+			return false;
+		if (instructorVO == null) {
+			if (other.instructorVO != null)
+				return false;
+		} else if (!instructorVO.equals(other.instructorVO))
+			return false;
+		if (reviewsVO == null) {
+			if (other.reviewsVO != null)
+				return false;
+		} else if (!reviewsVO.equals(other.reviewsVO))
+			return false;
+		if (studentsVO == null) {
+			if (other.studentsVO != null)
+				return false;
+		} else if (!studentsVO.equals(other.studentsVO))
+			return false;
+		if (title == null) {
+			if (other.title != null)
+				return false;
+		} else if (!title.equals(other.title))
+			return false;
+		return true;
 	}
 }

@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * A class that uses this annotation should use {@link DiffField} to specify which fields are to be included
  * when calculating the difference between objects of this type 
  * 
- * @author Nikola
+ * @author BabinKuk
  *
  */
 @Retention(RetentionPolicy.RUNTIME)

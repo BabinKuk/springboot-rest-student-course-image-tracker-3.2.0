@@ -6,15 +6,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.common.ApiResponse;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
 import org.babinkuk.dao.ImageRepository;
 import org.babinkuk.dao.InstructorRepository;
 import org.babinkuk.dao.StudentRepository;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Image;
 import org.babinkuk.entity.Instructor;
 import org.babinkuk.entity.Student;
 import org.babinkuk.exception.ObjectException;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.mapper.ImageMapper;
+import org.babinkuk.mapper.InstructorMapper;
+import org.babinkuk.mapper.StudentMapper;
 import org.babinkuk.validator.ValidatorCodes;
 import org.babinkuk.vo.ImageVO;
 import org.babinkuk.vo.InstructorVO;
@@ -36,6 +40,10 @@ public class ImageServiceImpl implements ImageService {
 	
 	private ImageMapper imageMapper;
 	
+	private InstructorMapper instructorMapper;
+	
+	private StudentMapper studentMapper;
+	
 	@Autowired
 	private StudentRepository studentRepository;
 	
@@ -43,11 +51,17 @@ public class ImageServiceImpl implements ImageService {
 	private InstructorRepository instructorRepository;
 	
 	@Autowired
-	public ImageServiceImpl(ImageRepository imageRepository, InstructorRepository instructorRepository, StudentRepository studentRepository, ImageMapper imageMapper) {
+	private ChangeLogService changeLogService;
+	
+	@Autowired
+	public ImageServiceImpl(ImageRepository imageRepository, InstructorRepository instructorRepository, StudentRepository studentRepository, ImageMapper imageMapper, InstructorMapper instructorMapper, StudentMapper studentMapper, ChangeLogService changeLogService) {
 		this.imageRepository = imageRepository;
 		this.instructorRepository = instructorRepository;
 		this.studentRepository = studentRepository;
 		this.imageMapper = imageMapper;
+		this.instructorMapper = instructorMapper;
+		this.studentMapper = studentMapper;
+		this.changeLogService = changeLogService;
 	}
 	
 	@Override
@@ -86,11 +100,14 @@ public class ImageServiceImpl implements ImageService {
 		Optional<Image> entity = imageRepository.findById(imageVO.getId());
 		
 		Image image = null;
+		ImageVO originalImageVO = null;
 		
 		if (entity.isPresent()) {
 			image = entity.get();
 			//log.info("image ({})", entity);
 			//log.info("mapping for update");
+			
+			originalImageVO = imageMapper.toVO(image);
 			
 			// mapping
 			image = imageMapper.toEntity(imageVO, image);
@@ -105,6 +122,11 @@ public class ImageServiceImpl implements ImageService {
 		//log.info("image ({})", image);
 
 		imageRepository.save(image);
+		
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.IMAGE);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalImageVO, imageVO);
 		
 		return response;
 	}
@@ -127,10 +149,20 @@ public class ImageServiceImpl implements ImageService {
 			if (entity.isPresent()) {
 				instructor = entity.get();
 				
+				InstructorVO originalInstructorVO = instructorMapper.toVO(instructor);
+				
 				// add image
 				instructor.addImage(imageMapper.toEntity(imageVO));
 				
 				instructorRepository.save(instructor);
+				
+				InstructorVO currentInstructorVO = instructorMapper.toVO(instructor);
+				
+				// create ChangeLog
+				final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.INSTRUCTOR);
+				// save ChangeLog
+				changeLogService.saveChangeLog(changeLog, originalInstructorVO, currentInstructorVO);
+
 			} else {
 				// not found
 				String message = String.format(MessagePool.getMessage(ValidatorCodes.ERROR_CODE_INSTRUCTOR_ID_NOT_FOUND.getMessage()), userVO.getId());
@@ -146,10 +178,20 @@ public class ImageServiceImpl implements ImageService {
 			if (entity.isPresent()) {
 				student = entity.get();
 				
+				StudentVO originalStudentVO = studentMapper.toVO(student);
+				
 				// add image
 				student.addImage(imageMapper.toEntity(imageVO));
 				
 				studentRepository.save(student);
+				
+				StudentVO currentStudentVO = studentMapper.toVO(student);
+				
+				// create ChangeLog
+				final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.STUDENT);
+				// save ChangeLog
+				changeLogService.saveChangeLog(changeLog, originalStudentVO, currentStudentVO);
+				
 			} else {
 				// not found
 				String message = String.format(MessagePool.getMessage(ValidatorCodes.ERROR_CODE_STUDENT_ID_NOT_FOUND.getMessage()), userVO.getId());
@@ -169,7 +211,25 @@ public class ImageServiceImpl implements ImageService {
 		response.setStatus(HttpStatus.OK);
 		response.setMessage(MessagePool.getMessage(IMAGE_DELETE_SUCCESS));
 		
+		Optional<Image> entity = imageRepository.findById(id);
+		
+		Image image = null;
+		ImageVO originalImageVO = null;
+		
+		if (entity.isPresent()) {
+			image = entity.get();
+			//log.info("image ({})", entity);
+			//log.info("mapping for update");
+			
+			originalImageVO = imageMapper.toVO(image);
+		}
+		
 		imageRepository.deleteById(id);
+				
+		// create ChangeLog
+		final ChangeLog changeLog = ChangeLogServiceImpl.createChangeLog(RestModule.IMAGE);
+		// save ChangeLog
+		changeLogService.saveChangeLog(changeLog, originalImageVO, null);
 		
 		return response;
 	}
