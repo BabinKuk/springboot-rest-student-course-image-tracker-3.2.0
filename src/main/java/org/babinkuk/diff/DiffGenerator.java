@@ -561,6 +561,7 @@ public class DiffGenerator {
     		}
     	// Special case when either, but not both, is null. If both are null, there is no difference to record.
     	} else if (original != current) {
+    		log.info("Special case when either, but not both, is null");
     		boolean addChLogItem = true; // BZ #23132
     		
     		if (original == null) { // --> insert
@@ -651,13 +652,22 @@ public class DiffGenerator {
                     originalString = DateFormatter.formatLocalDate((LocalDate) original);
                 }
                 else if (original instanceof java.util.Map) {
-                	// BZ #23132
                 	Map originalMap = (Map) original;
                 	if ((originalMap == null) || (originalMap.isEmpty()))
                 		addChLogItem = false;
                 	
                 	originalString = original.toString();
-                } else {
+                }
+                // Iterate through iterable objects
+                else if (original instanceof Iterable) {//collection, list, queue, set
+    				Collection<?> orgColl = (Collection<?>) original;
+    				
+    				if ((orgColl == null) || (orgColl.isEmpty()))
+                		addChLogItem = false;
+                	
+                	originalString = original.toString();
+    			}
+                else {
                 	/*if(original.getClass().getSimpleName().equalsIgnoreCase("MonitoringIndicatorVO")){
 					  	originalString = clientMonitoringIndicatorRepository.getOne(Long.parseLong(original.toString())).getCmiName();
               		} else {
