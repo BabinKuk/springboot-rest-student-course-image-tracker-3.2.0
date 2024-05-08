@@ -109,14 +109,14 @@ public class ChangeLogServiceImpl implements ChangeLogService {
 		
 		itemSet = diffGenerator.difference(original, current, null, null, itemSet, null);
 		
-		log.info(itemSet.isEmpty());
-		
 		if (!itemSet.isEmpty()) {
 			for (ChangeLogItem item : itemSet) {
 				item.setChangeLog(changeLog);
 			}
 			
 			changeLog.setChangeLogItems(itemSet);
+			
+			log.info("saving changeLog {}", changeLog);
 			
 			changeLogRepository.save(changeLog);
 		}	
@@ -129,7 +129,6 @@ public class ChangeLogServiceImpl implements ChangeLogService {
 	}
 	
 	private Object removeBlanksFromObject(Object obj) throws ApplicationServiceException {
-		log.info("removeBlanksFromObject {}", obj);
 		
 		try {
 			final Class<?> objectClass = obj.getClass();

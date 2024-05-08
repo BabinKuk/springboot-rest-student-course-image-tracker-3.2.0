@@ -2,6 +2,7 @@ package org.babinkuk.utils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.babinkuk.config.Api.RestModule;
 import org.babinkuk.entity.Address;
 import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
@@ -433,18 +434,14 @@ public class ApplicationTestUtils {
 		return imageVO;
 	}
 	
-	public static void validateExistingChangeLog(ChangeLog chLog) {
-		//nastaviti sutra!!!
+	public static void validateNewChangeLog(ChangeLog chLog) {
 		assertNotNull(chLog,"ChangeLog null");
-		//assertNotNull(chLog.getTitle(),"getTitle() null");
-		//assertNotNull(chLog.getStudents(),"getStudents() null");
-		//assertNotNull(chLog.getReviews(),"getReviews() null");
-		//assertNotNull(chLog.getInstructor(),"getInstructor() null");
 		assertEquals(1, chLog.getChloId());
-		//assertEquals(COURSE, chLog.getTitle(),"getTitle() NOK");
-		//assertEquals(INSTRUCTOR_FIRSTNAME, chLog.getInstructor().getFirstName(),"getInstructor().getFirstName() NOK");
-		//assertEquals(1, chLog.getInstructor().getImages().size(),"getInstructor().getImages().size() NOK");
-		//assertEquals(1, chLog.getReviews().size(), "getReviews size not 1");
+		assertEquals(RestModule.COURSE.getLabel(), chLog.getChloUserId(),"getChloUserId() NOK");
+		assertEquals(RestModule.COURSE.getModuleId(), chLog.getChloTableId(),"getChloTableId() NOK");
+		assertNotNull(chLog.getLogModule(),"getLogModule() null");
+		assertEquals(RestModule.COURSE.getModuleId(), chLog.getLogModule().getLmId(),"getLogModule().getLmId() NOK");
+		assertNotNull(chLog.getChloTimestamp(),"getChloTimestamp() null");
 		//assertTrue(chLog.getReviews().stream().anyMatch(review ->
 		//	review.getComment().equals(REVIEW) && review.getId() == 1
 		//));

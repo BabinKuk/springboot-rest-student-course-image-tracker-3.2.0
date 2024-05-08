@@ -1,22 +1,26 @@
 package org.babinkuk.dao;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.ApplicationTest;
+import org.babinkuk.config.Api.RestModule;
 import org.babinkuk.entity.ChangeLog;
-import org.babinkuk.entity.Course;
-import org.babinkuk.entity.Instructor;
-import org.babinkuk.entity.Review;
-import org.babinkuk.entity.Student;
+import org.babinkuk.entity.LogModule;
 import org.babinkuk.utils.ApplicationTestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.babinkuk.utils.ApplicationTestConstants.*;
-
-import java.util.*;
 
 @Transactional
 @AutoConfigureMockMvc
@@ -25,10 +29,41 @@ public class ChangeLogRepositoryTest extends ApplicationTest {
 	public static final Logger log = LogManager.getLogger(ChangeLogRepositoryTest.class);
 			
 	@Test
+	void addChangeLog() {
+		
+		// create changeLog
+		ChangeLog changeLog = createChangeLog();
+		
+		ChangeLog savedChLog = changeLogRepository.save(changeLog);
+		
+		// assert
+		assertNotNull(savedChLog,"savedChLog null");
+		ApplicationTestUtils.validateNewChangeLog(savedChLog);
+	}
+	
+	@Test
 	void getAllChangeLogs() {
 		
 		// when
 		Iterable<ChangeLog> chLogs = changeLogRepository.findAll();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+		
+		if (chLogs instanceof Collection) {
+			assertEquals(0, ((Collection<?>) chLogs).size(), "chLogs size not 0");
+		}
+		
+		// create chLog
+		ChangeLog changeLog = createChangeLog();
+		
+		ChangeLog savedChLog = changeLogRepository.save(changeLog);
+		
+		// assert
+		assertNotNull(savedChLog,"savedChLog null");
+		ApplicationTestUtils.validateNewChangeLog(savedChLog);
+		
+		chLogs = changeLogRepository.findAll();
 		
 		// then assert
 		assertNotNull(chLogs,"chLogs null");
@@ -41,24 +76,30 @@ public class ChangeLogRepositoryTest extends ApplicationTest {
 		chLogs.forEach(chLogList::add);
 
 		assertTrue(chLogList.stream().anyMatch(chLog ->
-			chLog.getChloUserId().equals("user") && chLog.getChloId() == 1
+			chLog.getChloUserId().equals(RestModule.COURSE.getLabel())
+				&& chLog.getChloTableId() == (RestModule.COURSE.getModuleId())
+				&& chLog.getChloId() == 1
 		));
 	}
 	
 	@Test
 	void getChangeLogById() {
+
+		// create changeLog
+		ChangeLog changeLog = createChangeLog();
 		
-		// given
-		ChangeLog chLog = getChangeLog();
+		ChangeLog savedChLog = changeLogRepository.save(changeLog);
 		
-		assertTrue(chLog != null, "ChangeLog null");
+		// assert
+		assertNotNull(savedChLog,"savedChLog null");
+		ApplicationTestUtils.validateNewChangeLog(savedChLog);
 		
 		// when
-		Optional<ChangeLog> dbChLog = changeLogRepository.findById(chLog.getChloId());
+		Optional<ChangeLog> dbChLog = changeLogRepository.findById(savedChLog.getChloId());
 				
 		// then assert
 		assertTrue(dbChLog.isPresent());
-		ApplicationTestUtils.validateExistingChangeLog(dbChLog.get());
+		ApplicationTestUtils.validateNewChangeLog(dbChLog.get());
 		
 		// get non-existing course id=2222
 		dbChLog = changeLogRepository.findById(2222);
@@ -67,98 +108,51 @@ public class ChangeLogRepositoryTest extends ApplicationTest {
 		assertFalse(dbChLog.isPresent());
 	}
 	
-//	@Test
-//	void updateCourse() {
-//		
-//		// when
-//		Course course = getChangeLog();
-//				
-//		// then assert
-//		assertTrue(course != null, "course null");
-//		
-//		ApplicationTestUtils.validateExistingCourse(course);
-//		
-//		// update
-//		// set id: this is to force an update of existing item
-//		Course updatedCourse = new Course();
-//		updatedCourse = ApplicationTestUtils.updateCourse(course);
-//		
-//		// save course
-//		entityManager.persist(updatedCourse);
-//		entityManager.flush();
-//		
-//		Course savedCourse = courseRepository.save(updatedCourse);
-//		
-//		// assert
-//		assertNotNull(savedCourse,"savedCourse null");
-//		ApplicationTestUtils.validateUpdatedCourse(savedCourse);
-//	}
-//	
-//	@Test
-//	void addCourse() {
-//		
-//		// create course
-//		// set id=0: this is to force a save of new item
-//		Course course = new Course(COURSE_NEW);
-//		course.setId(0);
-//		
-//		Course savedCourse = courseRepository.save(course);
-//		
-//		// assert
-//		assertNotNull(savedCourse,"savedCourse null");
-//		ApplicationTestUtils.validateNewCourse(savedCourse);
-//	}
-//
-//	@Test
-//	void deleteCourse() {
-//		
-//		// when
-//		Course course = getChangeLog();
-//				
-//		// then assert
-//		assertTrue(course != null, "course null");
-//		
-//		ApplicationTestUtils.validateExistingCourse(course);
-//				
-//		// delete course
-//		courseRepository.deleteById(course.getId());
-//		
-//		Optional<Course> deletedCourse = courseRepository.findById(course.getId());
-//		
-//		// assert
-//		assertFalse(deletedCourse.isPresent());
-//		
-//		// get instructors
-//		Iterable<Instructor> instructors = instructorRepository.findAll();
-//		
-//		// assert - must be unchanged
-//		assertNotNull(instructors,"courses null");
-//		
-//		if (instructors instanceof Collection) {
-//			assertEquals(1, ((Collection<?>) instructors).size(), "instructors size not 1");
-//		}
-//		
-//		// get students
-//		Iterable<Student> students = studentRepository.findAll();
-//		
-//		// assert - must be unchanged
-//		assertNotNull(students, "students null");
-//		
-//		if (students instanceof Collection) {
-//			assertEquals(1, ((Collection<?>) students).size(), "students size not 1");
-//		}
-//		
-//		// get reviews
-//		Iterable<Review> reviews = reviewRepository.findAll();
-//		
-//		// assert - must be deleted
-//		assertNotNull(reviews, "reviews null");
-//		
-//		if (reviews instanceof Collection) {
-//			assertEquals(0, ((Collection<?>) reviews).size(), "reviews size not 0");
-//		}
-//	}
+	@Test
+	void deleteChangeLog() {
+		
+		// create changeLog
+		ChangeLog changeLog = createChangeLog();
+		
+		ChangeLog savedChLog = changeLogRepository.save(changeLog);
+		
+		// assert
+		assertNotNull(savedChLog,"savedChLog null");
+		ApplicationTestUtils.validateNewChangeLog(savedChLog);
+				
+		// delete changeLog
+		changeLogRepository.deleteById(savedChLog.getChloId());
+		
+		// when
+		Optional<ChangeLog> deletedChLog = changeLogRepository.findById(savedChLog.getChloId());
+						
+		// assert
+		assertFalse(deletedChLog.isPresent());
+		
+	}
 	
+	public static ChangeLog createChangeLog() {
+		
+		ChangeLog changeLog = new ChangeLog();
+		// this is to force a save of new item ... instead of update 
+		changeLog.setChloId(0);
+		
+		// TODO in the future set real user
+		changeLog.setChloUserId(RestModule.COURSE.getLabel());
+		
+		LogModule logModule = new LogModule();
+		logModule.setLmId(RestModule.COURSE.getModuleId());
+		
+		changeLog.setLogModule(logModule);
+		
+		// TODO in the future set real course id
+		changeLog.setChloTableId(RestModule.COURSE.getModuleId());
+		
+		changeLog.setChloTimestamp(new Date());
+		
+		return changeLog;
+	}
+
 	public ChangeLog getChangeLog() {
 		
 		// get all

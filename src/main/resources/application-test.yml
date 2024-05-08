@@ -64,7 +64,8 @@ spring:
 sql:
   script:
     reset:
-      template: ALTER TABLE %s ALTER COLUMN id RESTART WITH 1
+      table-id-list: course:id,"user":id,image:id,review:id,instructor_detail:id,change_log:chlo_id,change_log_item:chli_id,log_module:lm_id
+      template: ALTER TABLE %s ALTER COLUMN %s RESTART WITH 1
     review:
       insert: INSERT INTO REVIEW(id,comment,course_id) values(1,'test review',1)
       delete: DELETE FROM REVIEW
@@ -98,3 +99,10 @@ sql:
     change-log-item:
       insert: INSERT INTO change_log_item(chli_id,chli_field_name,chli_old_value,chli_old_value_id,chli_new_value,chli_new_value_id,chlo_id) values(1,'test field','old',1,'new',1,1)
       delete: DELETE FROM change_log_item
+    log-module:
+      insert-student: INSERT INTO log_module(lm_id,lm_description,lm_entity_name) values(1,'STUDENT','org.babinkuk.entity.Student')
+      insert-instructor: INSERT INTO log_module(lm_id,lm_description,lm_entity_name) values(2,'INSTRUCTOR','org.babinkuk.entity.Instructor')
+      insert-course: INSERT INTO log_module(lm_id,lm_description,lm_entity_name) values(3,'COURSE','org.babinkuk.entity.Course')
+      insert-review: INSERT INTO log_module(lm_id,lm_description,lm_entity_name) values(4,'REVIEW','org.babinkuk.entity.Review')
+      insert-image: INSERT INTO log_module(lm_id,lm_description,lm_entity_name) values(5,'IMAGE','org.babinkuk.entity.Image')
+      delete: DELETE FROM log_module

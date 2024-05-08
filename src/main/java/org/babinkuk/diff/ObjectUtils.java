@@ -24,7 +24,7 @@ public class ObjectUtils {
 	
 	/**
 	 * return the list of all fields in the class
-	 * including also superclasses
+	 * superclasses included
 	 * 
 	 * @param objectClass
 	 * @return
@@ -41,8 +41,8 @@ public class ObjectUtils {
 	/**
 	 * reflective attempt to access field
 	 * 
-	 * the method first tries to use traditional naming convention. if it fails and the fied is boolean/Boolean, it tries
-	 * get-prefixed getter (as opposed to the conventional is-prefixed geter). Finally it tries to access the filed directly.
+	 * The method first tries to use traditional naming convention. If it fails and the field is boolean/Boolean, it tries
+	 * get-prefixed getter (as opposed to the conventional is-prefixed geter). Finally it tries to access the field directly.
 	 * 
 	 * @param field access field
 	 * @param obj object on which to acces field
@@ -62,7 +62,7 @@ public class ObjectUtils {
 				Method getter = obj.getClass().getMethod(methodName);
 				return getter.invoke(obj);
 			} catch (NoSuchMethodException e) {
-				log.info("Didn't find propper boolena getter,  trying normal : " + e);
+				log.info("Didn't find propper boolean getter, trying normal : " + e);
 			}
 		}
 		
@@ -92,14 +92,14 @@ public class ObjectUtils {
 		
 		Field field = null;
 
-		for(Field tempField : getAllFields(object.getClass())) {
-			if(tempField.getName().equalsIgnoreCase(fieldName)) {
+		for (Field tempField : getAllFields(object.getClass())) {
+			if (tempField.getName().equalsIgnoreCase(fieldName)) {
 				field = tempField;
 				break;
 			}
 		}
 		
-		if(field != null) {
+		if (field != null) {
 			return getValueForField(field, object);
 		} else {
 			return null;
@@ -168,7 +168,7 @@ public class ObjectUtils {
 
 		Class<?> clas = Class.forName(objectName);
 		
-		for(Field tempField : getAllFields(clas)) {
+		for (Field tempField : getAllFields(clas)) {
 			if (tempField.getName().equalsIgnoreCase(fieldName)) {
 				return true;
 			}
@@ -190,8 +190,8 @@ public class ObjectUtils {
 		
 		Field idField= null;
 		Class clazz = Class.forName(className);
+		
 		if (clazz != null) {
-			
 			for (Field field : clazz.getDeclaredFields()) {
 				Method getterMethod = ObjectUtils.getGetterMethodForField(field, clazz);
 				if (getterMethod != null && getterMethod.isAnnotationPresent(Id.class)) {
@@ -280,7 +280,7 @@ public class ObjectUtils {
 		
 		try {
 			if (object.getClass() != null) {
-				for(Field field : object.getClass().getDeclaredFields()) {
+				for (Field field : object.getClass().getDeclaredFields()) {
 					if (field.isAnnotationPresent(DiffField.class)) {
 						Object tempValue = ObjectUtils.getValueForField(field, object);
 						

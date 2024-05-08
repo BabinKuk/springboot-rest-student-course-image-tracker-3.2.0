@@ -23,9 +23,13 @@ import static org.babinkuk.utils.ApplicationTestConstants.STUDENT_ZIPCODE;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.dao.ChangeLogRepository;
@@ -144,6 +148,9 @@ public class ApplicationTest {
 	@Value("${test.message}")
 	String customMessage;
 	
+	@Value("${sql.script.reset.table-id-list}")
+	private String tableIdList;
+	
 	@Value("${sql.script.reset.template}")
 	private String sqlResetTemplate;
 	
@@ -210,6 +217,30 @@ public class ApplicationTest {
 	@Value("${sql.script.change-log.delete}")
 	private String sqlDeleteChangeLog;
 	
+	@Value("${sql.script.change-log-item.insert}")
+	private String sqlAddChangeLogItem;
+	
+	@Value("${sql.script.change-log-item.delete}")
+	private String sqlDeleteChangeLogItem;
+	
+	@Value("${sql.script.log-module.insert-student}")
+	private String sqlAddLogModuleStudent;
+	
+	@Value("${sql.script.log-module.insert-instructor}")
+	private String sqlAddLogModuleInstructor;
+	
+	@Value("${sql.script.log-module.insert-course}")
+	private String sqlAddLogModuleCourse;
+	
+	@Value("${sql.script.log-module.insert-review}")
+	private String sqlAddLogModuleReview;
+	
+	@Value("${sql.script.log-module.insert-image}")
+	private String sqlAddLogModuleImage;
+	
+	@Value("${sql.script.log-module.delete}")
+	private String sqlDeleteLogModule;
+	
 	@BeforeAll
 	public static void setup() {
 		
@@ -221,7 +252,11 @@ public class ApplicationTest {
 		
 		insertData();
 		
-		jdbc.execute(sqlAddChangeLog);
+		jdbc.execute(sqlAddLogModuleStudent);
+		jdbc.execute(sqlAddLogModuleInstructor);
+		jdbc.execute(sqlAddLogModuleCourse);
+		jdbc.execute(sqlAddLogModuleReview);
+		jdbc.execute(sqlAddLogModuleImage);
 		
 //		// check
 //		List<Map<String,Object>> userList = new ArrayList<Map<String,Object>>();
@@ -273,12 +308,18 @@ public class ApplicationTest {
 		jdbc.execute(sqlDeleteInstructorDetail);
 		jdbc.execute(sqlDeleteImage);
 		jdbc.execute(sqlDeleteUser);
+		jdbc.execute(sqlDeleteChangeLogItem);
 		jdbc.execute(sqlDeleteChangeLog);
+		jdbc.execute(sqlDeleteLogModule);
+		
+//		// reset id column sequence
+//		String[] tables = { "\"user\":id", "course:id", "image:id", "review:id", "instructor_detail:id", "change_log:chlo_id", "change_log_item:chli_id" };
+//		//DbTestUtil.resetAutoIncrementColumns(webApplicationContext, sqlResetTemplate, tables);
+//		resetAutoIncrementColumns(sqlResetTemplate, tables);
 		
 		// reset id column sequence
-		String[] tables = { "\"user\"", "course", "image", "review", "instructor_detail" };
-		//DbTestUtil.resetAutoIncrementColumns(webApplicationContext, sqlResetTemplate, tables);
-		resetAutoIncrementColumns(sqlResetTemplate, tables);
+		Map<String, String> tableIdMap = getTableIdMapping(tableIdList, ",", ":");
+		resetAutoIncrementColumns(sqlResetTemplate, tableIdMap);
 	}	
 	
 	@Test
@@ -370,13 +411,42 @@ public class ApplicationTest {
 		entityManager.clear();
 	}
 	
-	public void resetAutoIncrementColumns(String sqlResetTemplate, String... tableNames) throws SQLException {
+//	public void resetAutoIncrementColumns(String sqlResetTemplate, String... tableNames) throws SQLException {
+//		
+//		// Create and envoke SQL statements that reset the auto increment columns
+//		for (String sqlResetArgumentMap: tableNames) {
+//			log.info(sqlResetArgumentMap);
+//			String[] mappingStringArray = StringUtils.stripToEmpty(sqlResetArgumentMap).split(":");
+//			String resetSql = String.format(sqlResetTemplate, mappingStringArray[0], mappingStringArray[1]);
+//			log.info(resetSql);
+//			jdbc.execute(resetSql);
+//		}
+//	}
+	
+	public void resetAutoIncrementColumns(String sqlResetTemplate, Map<String, String> tableIdMap) throws SQLException {
 		
 		// Create and envoke SQL statements that reset the auto increment columns
-		for (String sqlResetArgument: tableNames) {
-			//log.info(sqlResetArgument);
-			String resetSql = String.format(sqlResetTemplate, sqlResetArgument);
-			jdbc.execute(resetSql);
+		if (!tableIdMap.isEmpty()) {
+			for (Map.Entry<String, String> entry : tableIdMap.entrySet()) {
+				//log.info(entry.getKey() + " : " + entry.getValue());
+				String table = entry.getKey();
+				String id = entry.getValue();
+				String resetSql = String.format(sqlResetTemplate, table, id);
+				log.info(resetSql);
+				jdbc.execute(resetSql);
+			}
 		}
+	}
+	
+	public Map<String, String> getTableIdMapping(String str, String arraySplitter, String elementSplitter) {
+		Map<String, String> resultMap = new HashMap<>();
+		
+		for (String mappingString : str.split(arraySplitter)) {
+			String[] mappingStringArray = StringUtils.stripToEmpty(mappingString).split(elementSplitter);
+			
+			resultMap.put(mappingStringArray[0], mappingStringArray[1]);
+		}
+		
+		return resultMap;
 	}
 }
