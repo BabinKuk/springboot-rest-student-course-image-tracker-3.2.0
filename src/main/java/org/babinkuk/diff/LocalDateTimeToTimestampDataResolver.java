@@ -17,7 +17,7 @@ public class LocalDateTimeToTimestampDataResolver implements DataResolver<LocalD
 		Date date = DateHelper.localDateTimeToDate(param);
 		if (date != null) {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy. HH:mm:ss");
-			return sdf.format(param);
+			return sdf.format(date);
 		}
 		return null;
 	}

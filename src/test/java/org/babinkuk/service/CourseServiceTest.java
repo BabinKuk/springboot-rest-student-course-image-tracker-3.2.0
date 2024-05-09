@@ -260,7 +260,7 @@ public class CourseServiceTest extends ApplicationTest {
 		assertEquals(0, courseVO.getReviewsVO().size(), "getReviews size not 0");
 	}
 	
-	public CourseVO getCourse() {
+	public CourseVO getChangeLog() {
 		
 		// get all courses
 		Iterable<CourseVO> courses = courseService.getAllCourses();

@@ -26,18 +26,19 @@ public class DateHelper {
 	
 	public static Date getNextDay(Date date) {
 		
-		if (date.getTime() == Long.MAX_VALUE) {
-			return date;
-		}
-		
 		Date result = null;
 		
 		if (date != null) {
-			// calculate one day time span for query
-			Calendar cal = new GregorianCalendar();
-			cal.setTime(date);
-			cal.add(Calendar.DAY_OF_MONTH, 1);
-			result = DateUtils.truncate(cal.getTime(),Calendar.DAY_OF_MONTH);       
+			if (date.getTime() == Long.MAX_VALUE) {
+				return date;
+			}
+			else {
+				// calculate one day time span for query
+				Calendar cal = new GregorianCalendar();
+				cal.setTime(date);
+				cal.add(Calendar.DAY_OF_MONTH, 1);
+				result = DateUtils.truncate(cal.getTime(),Calendar.DAY_OF_MONTH);
+			}
 		}
 		
 		return result;          

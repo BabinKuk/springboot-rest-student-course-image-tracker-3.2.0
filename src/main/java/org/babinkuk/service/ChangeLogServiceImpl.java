@@ -124,7 +124,6 @@ public class ChangeLogServiceImpl implements ChangeLogService {
 
 	@Override
 	public void deleteChangeLog(int id) throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
 		changeLogRepository.deleteById(id);
 	}
 	
