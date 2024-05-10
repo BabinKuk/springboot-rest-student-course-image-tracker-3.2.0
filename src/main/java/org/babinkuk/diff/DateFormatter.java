@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
-import org.babinkuk.diff.DateHelper;
 
 public class DateFormatter {
 
@@ -45,7 +44,7 @@ public class DateFormatter {
 	}
 	
 	/**
-	 * Method that converts a string date in dd.mm.yyyy format to date
+	 * Method that converts a string date in dd.mm.yyyy. format to date
 	 *
 	 * @param inputDate
 	 * @return
@@ -73,8 +72,8 @@ public class DateFormatter {
      * @throws ParseException
      */
 	public static String formatDateDash(Date inputDate) {
-		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy.");
-		return sdf.format(inputDate);
+		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+		return inputDate == null ?  null : sdf.format(inputDate);
 	}
 	
 	/**
@@ -90,13 +89,13 @@ public class DateFormatter {
 		return sdf.format(inputDate);
 	}
 	
-	public static String formatMonthAndYear(Date date) {
+	public static String formatMonthAndYear(Date inputDate) {
 		
 		SimpleDateFormat sdf = new SimpleDateFormat("MM. yyyy.", new Locale("hr"));
-		return sdf.format(date);
+		return inputDate == null ?  null :  sdf.format(inputDate);
 	}
 	
-	public static java.util.Date getFirstMomentOfDay(java.util.Date date) {
+	public static Date getFirstMomentOfDay(Date date) {
 		Calendar c = Calendar.getInstance();
 		c.setTime(date);
 		c.set(Calendar.HOUR_OF_DAY, 0);
@@ -106,8 +105,8 @@ public class DateFormatter {
 		
 		return c.getTime();                          
 	}
-  
-   public static java.util.Date getLastMomentOfDay(java.util.Date date) {
+	
+	public static Date getLastMomentOfDay(Date date) {
 		Calendar c = Calendar.getInstance();
 		c.setTime(date);
 		c.set(Calendar.HOUR_OF_DAY, 23);
@@ -116,12 +115,12 @@ public class DateFormatter {
 		c.set(Calendar.MILLISECOND, 999);
 		
 		return c.getTime();                          
-   }
-   
-public static String formatLocalDate(LocalDate inputLocalDate) {
-	   
-	   Date date = DateHelper.localDateToDate(inputLocalDate);
+	}
+	
+	public static String formatLocalDate(LocalDate inputLocalDate) {
+		
+		Date date = DateHelper.localDateToDate(inputLocalDate);
 		SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy.");
-		return date == null ?  null : sdf.format(date);
-               }
+		return date == null ? null : sdf.format(date);
+	}
 }

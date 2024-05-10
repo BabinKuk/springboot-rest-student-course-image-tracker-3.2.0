@@ -16,7 +16,6 @@ import org.apache.logging.log4j.Logger;
 import org.babinkuk.ApplicationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 @AutoConfigureMockMvc
 public class DateHelperTest extends ApplicationTest {
