@@ -36,10 +36,6 @@ public class DiffGenerator {
 		// TODO Auto-generated constructor stub
 	}
 	
-	//public DiffGenerator(ClientMonitoringIndicatorRepository clientMonitoringIndicatorRepository) {
-	//	this.clientMonitoringIndicatorRepository = clientMonitoringIndicatorRepository;
-	//}
-
 	/**
 	 * Registers a {@link DataResolver DataResolver} to resolve data of type <code>forType<code>.
 	 * <p/>
@@ -280,7 +276,7 @@ public class DiffGenerator {
     	// Special case when either, but not both, is null. If both are null, there is no difference to record.
     	} else if (original != current) {
     		log.info("Special case when either, but not both, is null");
-    		boolean addChLogItem = true; // BZ #23132
+    		boolean addChLogItem = true;
     		
     		if (original == null) { // --> insert
     			if (tag == null) {
