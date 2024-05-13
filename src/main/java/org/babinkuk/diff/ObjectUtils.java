@@ -164,7 +164,7 @@ public class ObjectUtils {
 	 * @return
 	 * @throws ClassNotFoundException
 	 */
-	public static boolean findFieldInClass(String fieldName, String objectName) throws ClassNotFoundException{
+	public static boolean findFieldInClass(String fieldName, String objectName) throws ClassNotFoundException {
 
 		Class<?> clas = Class.forName(objectName);
 		
@@ -186,15 +186,16 @@ public class ObjectUtils {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 */
-	public static Field findIdFieldForClass(String className) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException{
+	public static Field findIdFieldForClass(String className) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 		
-		Field idField= null;
-		Class clazz = Class.forName(className);
+		Field idField = null;
+		Class<?> clazz = Class.forName(className);
 		
 		if (clazz != null) {
 			for (Field field : clazz.getDeclaredFields()) {
 				Method getterMethod = ObjectUtils.getGetterMethodForField(field, clazz);
-				if (getterMethod != null && getterMethod.isAnnotationPresent(Id.class)) {
+				log.info(field.getName() + " : " + getterMethod.getName());
+				if (getterMethod != null && (getterMethod.isAnnotationPresent(Id.class) || field.isAnnotationPresent(Id.class))) {
 					idField = field;
 					break;
 				}
