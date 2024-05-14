@@ -1,9 +1,12 @@
 package org.babinkuk.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.ApplicationTest;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Course;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.utils.ApplicationTestUtils;
@@ -108,6 +111,44 @@ public class CourseServiceTest extends ApplicationTest {
 		if (courses instanceof Collection<?>) {
 			assertEquals(2, ((Collection<?>) courses).size(), "courses size not 2");
 		}
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//		[ChangeLog [chloId=1, chloTimestamp=2024-05-14 12:38:40.087, chloUserId=COURSE, 
+//			logModule=LogModule [lmId=3, lmDescription=COURSE, lmEntityName=org.babinkuk.entity.Course], 
+//			chloTableId=3, 
+//			changeLogItems=[ChangeLogItem [chliId=1, chliFieldName=CourseVO.insert, chliOldValueId=0, chliOldValue=-, chliNewValue=CourseVO [id=0, title=new test, instructorVO=null, studentsVO=[], reviewsVO=[]], chliNewValueId=0]]]]
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.COURSE.getLabel())
+			&& chLog.getChloTableId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.COURSE.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Course")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("CourseVO.insert")
+				&& item.getChliNewValueId() == 0
+				&& item.getChliOldValueId() == 0
+				&& item.getChliOldValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), "CourseVO [")
+			)
+		));
 	}
 	
 	@Test
@@ -137,6 +178,40 @@ public class CourseServiceTest extends ApplicationTest {
 		
 		// assert
 		validateUpdatedCourse(courseVO);
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+		log.info(chLogList);
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.COURSE.getLabel())
+			&& chLog.getChloTableId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.COURSE.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Course")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("CourseVO.title.update")
+				&& item.getChliNewValueId() == 1
+				&& item.getChliOldValueId() == 1
+				&& item.getChliNewValue().equals(COURSE_UPDATED)
+				//&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& item.getChliOldValue().equals(COURSE)
+			)
+		));
 	}
 	
 	@Test
@@ -205,7 +280,40 @@ public class CourseServiceTest extends ApplicationTest {
 		expectedMessage = String.format(MessagePool.getMessage(ValidatorCodes.ERROR_CODE_REVIEW_ID_NOT_FOUND.getMessage()), 1);
 		actualMessage = exception.getMessage();
 		
-	    assertTrue(actualMessage.contains(expectedMessage));		
+	    assertTrue(actualMessage.contains(expectedMessage));
+	    
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.COURSE.getLabel())
+			&& chLog.getChloTableId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.COURSE.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Course")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("CourseVO.delete")
+				&& item.getChliNewValueId() == 0
+				&& item.getChliOldValueId() == 0
+				&& item.getChliNewValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), "CourseVO [")
+			)
+		));
 	}
 	
 	private void validateExistingCourse(CourseVO courseVO) {

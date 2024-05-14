@@ -131,10 +131,8 @@ public class ChangeLogServiceTest extends ApplicationTest {
 			assertEquals(0, ((Collection<?>) chLogs).size(), "chLogs size not 0");
 		}
 		
-		log.info(originalCourseVO.getTitle());
 		// update with new data
 		currentCourseVO = ApplicationTestUtils.updateExistingCourseVO(currentCourseVO);
-		log.info(currentCourseVO.getTitle());
 		
 		// should save change log because original=current
 		changeLogService.saveChangeLog(changeLog, originalCourseVO, currentCourseVO);
@@ -209,38 +207,6 @@ public class ChangeLogServiceTest extends ApplicationTest {
 		));
 	}
 	
-	private void validateUpdatedCourse(CourseVO courseVO) {
-		
-		assertNotNull(courseVO,"course null");
-		assertNotNull(courseVO.getTitle(),"getTitle() null");
-		assertNotNull(courseVO.getStudentsVO(),"getStudents() null");
-		assertNotNull(courseVO.getReviewsVO(),"getReviews() null");
-		//assertNotNull(courseVO.getInstructorVO(),"getInstructor() null");
-		assertEquals(1, courseVO.getId());
-		assertEquals(COURSE_UPDATED, courseVO.getTitle(),"getTitle() NOK");
-		assertEquals(INSTRUCTOR_EMAIL, courseVO.getInstructorVO().getEmail(),"getInstructor().getEmail() NOK");
-		assertEquals(1, courseVO.getReviewsVO().size(), "getReviews size not 1");
-		assertTrue(courseVO.getReviewsVO().stream().anyMatch(review ->
-			review.getComment().equals(REVIEW)// && review.getId() == 1
-		));
-		assertEquals(1, courseVO.getStudentsVO().size(), "getStudents size not 1");
-		assertTrue(courseVO.getStudentsVO().stream().anyMatch(student ->
-			student.getFirstName().equals(STUDENT_FIRSTNAME)// && student.getId() == 2
-		));
-	}
-	
-	private void validateNewCourse(CourseVO courseVO) {
-		
-		assertNotNull(courseVO,"course null");
-		assertNotNull(courseVO.getTitle(),"getTitle() null");
-		assertNotNull(courseVO.getStudentsVO(),"getStudents() null");
-		assertNull(courseVO.getInstructorVO(),"getInstructor() null");
-		//assertEquals(1, course.getId());
-		assertEquals(COURSE_NEW, courseVO.getTitle(),"getTitle() NOK");
-		assertEquals(0, courseVO.getStudentsVO().size(), "getStudents size not 0");
-		assertEquals(0, courseVO.getReviewsVO().size(), "getReviews size not 0");
-	}
-	
 	public CourseVO getChangeLog() {
 		
 		// get all courses
@@ -258,6 +224,5 @@ public class ChangeLogServiceTest extends ApplicationTest {
 				.filter(obj -> obj.getTitle().equals(COURSE))
 				.findAny()
 				.orElse(null);
-
 	}
 }
