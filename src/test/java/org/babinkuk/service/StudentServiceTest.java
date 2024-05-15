@@ -1,9 +1,12 @@
 package org.babinkuk.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.ApplicationTest;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.utils.ApplicationTestUtils;
 import org.babinkuk.validator.ActionType;
@@ -98,6 +101,47 @@ public class StudentServiceTest extends ApplicationTest {
 		
 		// assert
 		validateNewStudent(studentVO);
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+		log.info(chLogs);
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getChloTableId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Student")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("StudentVO.insert")
+				&& item.getChliNewValueId() == 0
+				&& item.getChliOldValueId() == 0
+				&& item.getChliOldValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), "StudentVO [")
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_FIRSTNAME_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_LASTNAME_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_EMAIL_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_STREET_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_CITY_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_ZIPCODE_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_STATUS_NEW.label)
+			)
+		));
 	}
 	
 	@Test
@@ -120,6 +164,102 @@ public class StudentServiceTest extends ApplicationTest {
 		
 		// assert
 		validateUpdatedStudent(studentVO);
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+		log.info(chLogs);
+//		[ChangeLog [chloId=1, chloTimestamp=2024-05-15 13:41:25.976, chloUserId=INSTRUCTOR, logModule=LogModule [lmId=2, lmDescription=INSTRUCTOR, lmEntityName=org.babinkuk.entity.Student], chloTableId=2, 
+//				changeLogItems=[ChangeLogItem [chliId=5, chliFieldName=StudentVO.firstName.update, chliOldValueId=1, chliOldValue=firstNameInstr, chliNewValue=firstNameInstrUpdate, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=2, chliFieldName=StudentVO.lastName.update, chliOldValueId=1, chliOldValue=lastNameInstr, chliNewValue=lastNameInstrUpdate, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=1, chliFieldName=StudentVO.hobby.update, chliOldValueId=1, chliOldValue=test hobby, chliNewValue=hobi, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=4, chliFieldName=StudentVO.email.update, chliOldValueId=1, chliOldValue=firstNameInstr@babinkuk.com, chliNewValue=InstrUpdate@babinkuk.com, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=7, chliFieldName=StudentVO.status.update, chliOldValueId=1, chliOldValue=ACTIVE, chliNewValue=INACTIVE, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=3, chliFieldName=StudentVO.salary.update, chliOldValueId=1, chliOldValue=1000.0, chliNewValue=500.0, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=6, chliFieldName=StudentVO.youtubeChannel.update, chliOldValueId=1, chliOldValue=ytb test, chliNewValue=jutub, chliNewValueId=1]]]]
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getChloTableId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Student")
+			&& chLog.getChangeLogItems().size() == 7
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("StudentVO.firstName.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_FIRSTNAME)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_FIRSTNAME_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("StudentVO.lastName.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_LASTNAME)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_LASTNAME_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("StudentVO.email.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_EMAIL)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_EMAIL_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("StudentVO.street.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_STREET)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_STREET_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("StudentVO.city.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_CITY)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_CITY_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("StudentVO.zipCode.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_ZIPCODE)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), STUDENT_ZIPCODE_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("StudentVO.status.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_STATUS.label)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_STATUS_UPDATED.label)
+			)
+		));
 	}
 	
 	@Test
@@ -159,7 +299,47 @@ public class StudentServiceTest extends ApplicationTest {
 		assertEquals(COURSE, courseVO.getTitle(), "course.getTitle()");
 		assertEquals(1, courseVO.getReviewsVO().size(), "course.getReviews().size()");
 		assertEquals(INSTRUCTOR_FIRSTNAME, courseVO.getInstructorVO().getFirstName(), "course.getInstructor().getFirstName()");
-		assertEquals(0, courseVO.getStudentsVO().size(), "course.getStudents().size()");	
+		assertEquals(0, courseVO.getStudentsVO().size(), "course.getStudents().size()");
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+		//log.info(chLogs);
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getChloTableId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Student")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("StudentVO.delete")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& item.getChliNewValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), "StudentVO [")
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_FIRSTNAME)
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_LASTNAME)
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_EMAIL)
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_STREET)
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_CITY)
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_ZIPCODE)
+				&& StringUtils.contains(item.getChliOldValue(), STUDENT_STATUS.label)
+			)
+		));
 	}
 	
 	/**

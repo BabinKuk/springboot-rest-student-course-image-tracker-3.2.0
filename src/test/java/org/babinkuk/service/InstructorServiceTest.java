@@ -1,9 +1,12 @@
 package org.babinkuk.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.ApplicationTest;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.entity.Status;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.utils.ApplicationTestUtils;
@@ -18,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.babinkuk.utils.ApplicationTestConstants.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Transactional
 @AutoConfigureMockMvc
@@ -105,7 +110,52 @@ public class InstructorServiceTest extends ApplicationTest {
 		
 		// assert
 		validateNewInstructor(instructorVO);
-	}	
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//		[[ChangeLog [chloId=1, chloTimestamp=2024-05-15 13:19:57.719, 
+//			chloUserId=INSTRUCTOR, 
+//			logModule=LogModule [lmId=2, lmDescription=INSTRUCTOR, lmEntityName=org.babinkuk.entity.Instructor], 
+//			chloTableId=2, 
+//			changeLogItems=[ChangeLogItem [chliId=1, chliFieldName=InstructorVO.insert, chliOldValueId=0, chliOldValue=-, chliNewValue=InstructorVO [id=0, firstName=firstNameInstrNew, lastName=lastNameInstrNew, email=InstrNew@babinkuk.com, images=null, status=ACTIVE, salary=1500.0, youtubeChannel=youtubeChannel, hobby=hobby], chliNewValueId=0]]]]
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.INSTRUCTOR.getLabel())
+			&& chLog.getChloTableId() == (RestModule.INSTRUCTOR.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.INSTRUCTOR.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.INSTRUCTOR.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Instructor")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("InstructorVO.insert")
+				&& item.getChliNewValueId() == 0
+				&& item.getChliOldValueId() == 0
+				&& item.getChliOldValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), "InstructorVO [")
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_FIRSTNAME_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_LASTNAME_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_EMAIL_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_YOUTUBE_NEW)
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_SALARY_NEW.toString())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_STATUS_NEW.label)
+			)
+		));
+	}
 	
 	@Test
 	void updateInstructor() {
@@ -127,6 +177,93 @@ public class InstructorServiceTest extends ApplicationTest {
 		
 		// assert
 		validateUpdatedInstructor(instructorVO);
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//		[ChangeLog [chloId=1, chloTimestamp=2024-05-15 13:41:25.976, chloUserId=INSTRUCTOR, logModule=LogModule [lmId=2, lmDescription=INSTRUCTOR, lmEntityName=org.babinkuk.entity.Instructor], chloTableId=2, 
+//				changeLogItems=[ChangeLogItem [chliId=5, chliFieldName=InstructorVO.firstName.update, chliOldValueId=1, chliOldValue=firstNameInstr, chliNewValue=firstNameInstrUpdate, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=2, chliFieldName=InstructorVO.lastName.update, chliOldValueId=1, chliOldValue=lastNameInstr, chliNewValue=lastNameInstrUpdate, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=1, chliFieldName=InstructorVO.hobby.update, chliOldValueId=1, chliOldValue=test hobby, chliNewValue=hobi, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=4, chliFieldName=InstructorVO.email.update, chliOldValueId=1, chliOldValue=firstNameInstr@babinkuk.com, chliNewValue=InstrUpdate@babinkuk.com, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=7, chliFieldName=InstructorVO.status.update, chliOldValueId=1, chliOldValue=ACTIVE, chliNewValue=INACTIVE, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=3, chliFieldName=InstructorVO.salary.update, chliOldValueId=1, chliOldValue=1000.0, chliNewValue=500.0, chliNewValueId=1], 
+//		                ChangeLogItem [chliId=6, chliFieldName=InstructorVO.youtubeChannel.update, chliOldValueId=1, chliOldValue=ytb test, chliNewValue=jutub, chliNewValueId=1]]]]
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.INSTRUCTOR.getLabel())
+			&& chLog.getChloTableId() == (RestModule.INSTRUCTOR.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.INSTRUCTOR.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.INSTRUCTOR.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Instructor")
+			&& chLog.getChangeLogItems().size() == 7
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("InstructorVO.firstName.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_FIRSTNAME)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_FIRSTNAME_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("InstructorVO.lastName.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_LASTNAME)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_LASTNAME_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("InstructorVO.email.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_EMAIL)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_EMAIL_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("InstructorVO.hobby.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_HOBBY)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_HOBBY_UPDATED)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("InstructorVO.status.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_STATUS.label)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_STATUS_UPDATED.label)
+			)
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() > 0
+				&& item.getChliFieldName().equals("InstructorVO.salary.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_SALARY.toString())
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), INSTRUCTOR_SALARY_UPDATED.toString())
+			)
+		));
 	}
 	
 	@Test
@@ -173,6 +310,45 @@ public class InstructorServiceTest extends ApplicationTest {
 		assertEquals(1, courseVO.getStudentsVO().size(), "course.getStudents().size()");
 		assertTrue(courseVO.getStudentsVO().stream().anyMatch(student ->
 			student.getFirstName().equals(STUDENT_FIRSTNAME) && student.getId() == 2
+		));
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.INSTRUCTOR.getLabel())
+			&& chLog.getChloTableId() == (RestModule.INSTRUCTOR.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.INSTRUCTOR.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.INSTRUCTOR.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Instructor")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("InstructorVO.delete")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& item.getChliNewValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), "InstructorVO [")
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_FIRSTNAME)
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_LASTNAME)
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_EMAIL)
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_YOUTUBE)
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_SALARY.toString())
+				&& StringUtils.contains(item.getChliOldValue(), INSTRUCTOR_STATUS.label)
+			)
 		));
 	}
 	
