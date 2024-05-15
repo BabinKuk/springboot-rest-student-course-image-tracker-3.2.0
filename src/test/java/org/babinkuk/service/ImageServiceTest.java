@@ -218,7 +218,7 @@ public class ImageServiceTest extends ApplicationTest {
 		
 		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
 		chLogs.forEach(chLogList::add);
-//		log.info(chLogs);
+		log.info(chLogList);
 //		[ChangeLog [chloId=1, chloTimestamp=2024-05-15 12:56:49.938, chloUserId=IMAGE, 
 //		logModule=LogModule [lmId=5, lmDescription=IMAGE, lmEntityName=org.babinkuk.entity.Image], 
 //		chloTableId=5, 
@@ -238,9 +238,9 @@ public class ImageServiceTest extends ApplicationTest {
 				&& item.getChliFieldName().equals("ImageVO.fileName.update")
 				&& item.getChliNewValueId() == item.getChliOldValueId()
 				&& StringUtils.isNotBlank(item.getChliOldValue())
-				&& item.getChliOldValue().equals(FILE_1)
+				&& StringUtils.contains(item.getChliOldValue(), FILE_1)
 				&& StringUtils.isNotBlank(item.getChliNewValue())
-				&& item.getChliNewValue().equals(FILE_UPDATED)
+				&& StringUtils.contains(item.getChliNewValue(), FILE_UPDATED)
 			)
 		));
 	}

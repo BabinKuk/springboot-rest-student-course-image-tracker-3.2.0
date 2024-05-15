@@ -1,9 +1,12 @@
 package org.babinkuk.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.ApplicationTest;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.validator.ValidatorCodes;
 import org.babinkuk.vo.CourseVO;
@@ -105,6 +108,45 @@ public class ReviewServiceTest extends ApplicationTest {
 		assertTrue(reviewList.stream().anyMatch(rev ->
 			rev.getComment().equals(REVIEW_NEW)
 		));
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//		[ChangeLog [chloId=1, chloTimestamp=2024-05-15 15:44:26.436, chloUserId=COURSE, 
+//					logModule=LogModule [lmId=3, lmDescription=COURSE, lmEntityName=org.babinkuk.entity.Course], 
+//					chloTableId=3, 
+//					changeLogItems=[ChangeLogItem [chliId=1, chliFieldName=CourseVO.reviewsVO.insert, chliOldValueId=0, chliOldValue=-, chliNewValue=ReviewVO [id=0, comment=new review], chliNewValueId=0]]]]
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.COURSE.getLabel())
+			&& chLog.getChloTableId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.COURSE.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.COURSE.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Course")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("CourseVO.reviewsVO.insert")
+				&& item.getChliNewValueId() == 0
+				&& item.getChliOldValueId() == 0
+				&& item.getChliOldValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), "ReviewVO [")
+				&& StringUtils.contains(item.getChliNewValue(), REVIEW_NEW)
+			)
+		));
 	}
 	
 	@Test
@@ -127,6 +169,44 @@ public class ReviewServiceTest extends ApplicationTest {
 		assertNotNull(savedReview,"savedReview null");
 		assertEquals(REVIEW_UPDATE, savedReview.getComment(),"savedReview.getComment() failure");
 		assertEquals(1, savedReview.getId(),"savedReview.getId() failure");
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//		[ChangeLog [chloId=1, chloTimestamp=2024-05-15 15:52:10.467, chloUserId=REVIEW, 
+//					logModule=LogModule [lmId=4, lmDescription=REVIEW, lmEntityName=org.babinkuk.entity.Review], 
+//					chloTableId=4, 
+//					changeLogItems=[ChangeLogItem [chliId=1, chliFieldName=ReviewVO.comment.update, chliOldValueId=1, chliOldValue=test review, chliNewValue=update test review, chliNewValueId=1]]]]
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.REVIEW.getLabel())
+			&& chLog.getChloTableId() == (RestModule.REVIEW.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.REVIEW.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.REVIEW.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Review")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("ReviewVO.comment.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), REVIEW)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), REVIEW_UPDATE)
+			)
+		));
 	}
 	
 	@Test
@@ -172,5 +252,43 @@ public class ReviewServiceTest extends ApplicationTest {
 		String actualMessage = exception.getMessage();
 		
 	    assertTrue(actualMessage.contains(expectedMessage));
+	    
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//		[ChangeLog [chloId=1, chloTimestamp=2024-05-15 15:59:06.096, chloUserId=REVIEW, 
+//					logModule=LogModule [lmId=4, lmDescription=REVIEW, lmEntityName=org.babinkuk.entity.Review], 
+//					chloTableId=4, 
+//					changeLogItems=[ChangeLogItem [chliId=1, chliFieldName=ReviewVO.delete, chliOldValueId=0, chliOldValue=ReviewVO [id=1, comment=test review], chliNewValue=-, chliNewValueId=0]]]]
+		
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.REVIEW.getLabel())
+			&& chLog.getChloTableId() == (RestModule.REVIEW.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.REVIEW.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.REVIEW.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Review")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("ReviewVO.delete")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& item.getChliNewValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), "ReviewVO [")
+				&& StringUtils.contains(item.getChliOldValue(), REVIEW)
+			)
+		));
 	}
 }
