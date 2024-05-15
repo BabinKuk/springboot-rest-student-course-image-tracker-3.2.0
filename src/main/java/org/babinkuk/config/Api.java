@@ -40,7 +40,7 @@ public final class Api {
 		INSTRUCTOR(2, "INSTRUCTOR"),
 		COURSE(3, "COURSE"),
 		REVIEW(4, "REVIEW"),
-		IMAGE(4, "IMAGE");
+		IMAGE(5, "IMAGE");
 		
 		private int moduleId;
 		private String label;

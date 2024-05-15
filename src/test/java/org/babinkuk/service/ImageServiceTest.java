@@ -1,9 +1,12 @@
 package org.babinkuk.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.babinkuk.ApplicationTest;
 import org.babinkuk.config.MessagePool;
+import org.babinkuk.config.Api.RestModule;
+import org.babinkuk.entity.ChangeLog;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.validator.ValidatorCodes;
 import org.babinkuk.vo.ImageVO;
@@ -133,6 +136,45 @@ public class ImageServiceTest extends ApplicationTest {
 		assertTrue(imageList.stream().anyMatch(img ->
 			img.getFileName().equals(FILE_NEW)
 		));
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//				[ChangeLog [chloId=1, chloTimestamp=2024-05-15 12:10:00.53, chloUserId=STUDENT, 
+//					logModule=LogModule [lmId=1, lmDescription=STUDENT, lmEntityName=org.babinkuk.entity.Student],
+//					chloTableId=1, 
+//					changeLogItems=[ChangeLogItem [chliId=1, chliFieldName=StudentVO.images.insert, chliOldValueId=0, chliOldValue=-, chliNewValue=ImageVO [id=3, fileName=FileNew.txt], chliNewValueId=3]]]]	
+
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getChloTableId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.STUDENT.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.STUDENT.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Student")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("StudentVO.images.insert")
+				&& item.getChliNewValueId() > 0
+				&& item.getChliOldValueId() == 0
+				&& item.getChliOldValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& StringUtils.contains(item.getChliNewValue(), "ImageVO [")
+				&& StringUtils.contains(item.getChliNewValue(), FILE_NEW)
+			)
+		));
 	}
 	
 	@Test
@@ -162,6 +204,45 @@ public class ImageServiceTest extends ApplicationTest {
 		assertEquals(FILE_UPDATED, savedImage.getFileName(),"savedImage.getFileName() failure");
 		assertEquals(image.getId(), savedImage.getId(),"savedImage.getId() failure");
 		assertTrue(Arrays.equals(imageVO.getData(), savedImage.getData()), "savedImage.getData() failure");
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+//		log.info(chLogs);
+//		[ChangeLog [chloId=1, chloTimestamp=2024-05-15 12:56:49.938, chloUserId=IMAGE, 
+//		logModule=LogModule [lmId=5, lmDescription=IMAGE, lmEntityName=org.babinkuk.entity.Image], 
+//		chloTableId=5, 
+//		changeLogItems=[ChangeLogItem [chliId=2, chliFieldName=ImageVO.data.update, chliOldValueId=1, chliOldValue=[B@4edd8b5b, chliNewValue=[B@3366a998, chliNewValueId=1], 
+//						ChangeLogItem [chliId=1, chliFieldName=ImageVO.fileName.update, chliOldValueId=1, chliOldValue=file1.jpg, chliNewValue=FileUpdate.txt, chliNewValueId=1]]]]
+
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.IMAGE.getLabel())
+			&& chLog.getChloTableId() == (RestModule.IMAGE.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.IMAGE.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.IMAGE.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Image")
+//			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("ImageVO.fileName.update")
+				&& item.getChliNewValueId() == item.getChliOldValueId()
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& item.getChliOldValue().equals(FILE_1)
+				&& StringUtils.isNotBlank(item.getChliNewValue())
+				&& item.getChliNewValue().equals(FILE_UPDATED)
+			)
+		));
 	}
 	
 	@Test
@@ -211,6 +292,41 @@ public class ImageServiceTest extends ApplicationTest {
 		assertEquals(INSTRUCTOR_SALARY, instructorVO.getSalary(),"getSalary() NOK");
 		assertEquals(INSTRUCTOR_STATUS, instructorVO.getStatus(),"getStatus() NOK");
 		assertEquals(0, instructorVO.getImages().size(), "getImages size not 0");
+		
+		// assert change log
+		// when
+		Iterable<ChangeLog> chLogs = changeLogService.getAllChangeLogs();
+		
+		// then assert
+		assertNotNull(chLogs,"chLogs null");
+				
+		if (chLogs instanceof Collection) {
+			assertEquals(1, ((Collection<?>) chLogs).size(), "chLogs size not 1");
+		}
+		
+		List<ChangeLog> chLogList = new ArrayList<ChangeLog>();
+		chLogs.forEach(chLogList::add);
+		//log.info(chLogs);
+
+		assertTrue(chLogList.stream().anyMatch(chLog ->
+			chLog.getChloId() == 1
+			&& chLog.getChloUserId().equals(RestModule.IMAGE.getLabel())
+			&& chLog.getChloTableId() == (RestModule.IMAGE.getModuleId())
+			&& chLog.getLogModule().getLmId() == (RestModule.IMAGE.getModuleId())
+			&& chLog.getLogModule().getLmDescription().equals(RestModule.IMAGE.getLabel())
+			&& chLog.getLogModule().getLmEntityName().equals("org.babinkuk.entity.Image")
+			&& chLog.getChangeLogItems().size() == 1
+			&& chLog.getChangeLogItems().stream().anyMatch(item ->
+				item.getChliId() == 1
+				&& item.getChliFieldName().equals("ImageVO.delete")
+				&& item.getChliNewValueId() == 0
+				&& item.getChliOldValueId() >= 0
+				&& item.getChliNewValue().equals("-")
+				&& StringUtils.isNotBlank(item.getChliOldValue())
+				&& StringUtils.contains(item.getChliOldValue(), "ImageVO [")
+				&& StringUtils.contains(item.getChliOldValue(), FILE_1)
+			)
+		));
 	}
 	
 	public ImageVO getImage() {

@@ -367,24 +367,4 @@ public class CourseServiceTest extends ApplicationTest {
 		assertEquals(0, courseVO.getStudentsVO().size(), "getStudents size not 0");
 		assertEquals(0, courseVO.getReviewsVO().size(), "getReviews size not 0");
 	}
-	
-	public CourseVO getChangeLog() {
-		
-		// get all courses
-		Iterable<CourseVO> courses = courseService.getAllCourses();
-		
-		// assert
-		if (courses instanceof Collection<?>) {
-			assertEquals(1, ((Collection<?>) courses).size(), "courses size not 1");
-		}
-		
-		List<CourseVO> courseList = new ArrayList<CourseVO>();
-		courses.forEach(courseList::add);
-	
-		return courseList.stream()
-				.filter(obj -> obj.getTitle().equals(COURSE))
-				.findAny()
-				.orElse(null);
-
-	}
 }

@@ -2,6 +2,7 @@ package org.babinkuk.vo;
 
 import java.util.Arrays;
 
+import org.babinkuk.diff.DiffField;
 import org.babinkuk.diff.Diffable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -19,10 +20,13 @@ public class ImageVO {
 
 	private int id;
 	
+	@DiffField
 	private String fileName;
 	
+	@DiffField
 	private byte[] data;
 	
+	@DiffField
 	private long size;
 
 	public ImageVO() {
