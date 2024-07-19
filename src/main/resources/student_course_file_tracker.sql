@@ -142,18 +142,4 @@ CREATE TABLE `change_log_item` (
   REFERENCES `change_log` (`chlo_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
 
-/*
-DROP TABLE IF EXISTS `generic_lookup_table`;
-
-CREATE TABLE `generic_lookup_table` (
-  `glt_entity_name` varchar(256),
-  `glt_custom_name` varchar(256) DEFAULT NULL,
-  `glt_rm_id` int(11) DEFAULT NULL,
-  KEY `FK_GLT_ENTITY_NAME_idx` (`glt_entity_name`),
-  CONSTRAINT `FK_GLT_RM` FOREIGN KEY (`glt_rm_id`) 
-  REFERENCES `rest_module` (`rm_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  PRIMARY KEY (`glt_entity_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
-*/
-
 SET FOREIGN_KEY_CHECKS = 1;

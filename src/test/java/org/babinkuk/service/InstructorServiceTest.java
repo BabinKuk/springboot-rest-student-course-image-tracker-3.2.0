@@ -7,6 +7,7 @@ import org.babinkuk.ApplicationTest;
 import org.babinkuk.config.MessagePool;
 import org.babinkuk.config.Api.RestModule;
 import org.babinkuk.entity.ChangeLog;
+import org.babinkuk.entity.Instructor;
 import org.babinkuk.entity.Status;
 import org.babinkuk.exception.ObjectNotFoundException;
 import org.babinkuk.utils.ApplicationTestUtils;
@@ -14,6 +15,7 @@ import org.babinkuk.validator.ActionType;
 import org.babinkuk.validator.ValidatorCodes;
 import org.babinkuk.vo.CourseVO;
 import org.babinkuk.vo.InstructorVO;
+import org.hamcrest.beans.HasProperty;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,8 +24,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.babinkuk.utils.ApplicationTestConstants.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Vector;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Transactional
 @AutoConfigureMockMvc
@@ -515,6 +527,339 @@ public class InstructorServiceTest extends ApplicationTest {
  	    assertTrue(actualMessage.contains(expectedMessage));
 	}
 	
+	@Test
+	void testStreams() {
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		instructorList.stream().forEach(i -> log.info(i));
+		
+		assertTrue(instructorList.stream().anyMatch(i ->
+			i.getEmail().equals("email3") && i.getFirstName().equals("firstName3")
+		));
+	}
+
+	@Test
+	void testStreamsForEach() {
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		instructorList.stream().forEach(i -> i.setEmail(i.getEmail() + i.getEmail()));
+		
+		assertTrue(instructorList.stream().anyMatch(i ->
+			i.getFirstName().equals("firstName1") && i.getEmail().equals("email1email1")
+		));
+		assertTrue(instructorList.stream().anyMatch(i ->
+			i.getFirstName().equals("firstName2") && i.getEmail().equals("email2email2")
+		));
+		assertTrue(instructorList.stream().anyMatch(i ->
+			i.getFirstName().equals("firstName3") && i.getEmail().equals("email3email3")
+		));	
+	}
+	
+	@Test
+	void testStreams_findFirst() {
+		Integer[] instructorIds = {1};
+		
+		// map() produces a new stream after applying a function to each element of the original stream. 
+		// collect(Collectors.toList() accumulate names into a List
+		// The new stream could be of different type.
+		List<InstructorVO> instructorList = Stream.of(instructorIds)
+				.map(instructorService::findById)
+				.collect(Collectors.toList());
+		instructorList.stream().forEach(i -> log.info(i));
+		
+		// Filter element
+		InstructorVO instructor = Stream.of(instructorIds)
+				.map(instructorService::findById)
+				.filter(i -> i.getEmail().equals(INSTRUCTOR_EMAIL_NEW))
+				.findFirst()
+				.orElse(null)
+				;
+		//log.info(instructor);
+		
+		assertNull(instructor, "instructor not null");
+	}
+	
+	@Test
+	void testStreams_toArray() {
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		instructorList.stream().forEach(i -> log.info(i));
+		
+		assertTrue(instructorList.stream().anyMatch(i ->
+			i.getEmail().equals("email3") && i.getFirstName().equals("firstName3")
+		));
+		
+		// The syntax InstructorVO[]::new creates an empty array of InstructorVO
+		// which is then filled with elements from the stream
+		InstructorVO[] instructors = instructorList.stream().toArray(InstructorVO[]::new);
+		
+		assertEquals(instructorList.size(), instructors.length);
+	}
+	
+	@Test
+	void whenFlatMapNames_thenGetNameStream() {
+		List<List<String>> namesNested = Arrays.asList(
+				Arrays.asList("firstName1", "lastName1", "email1"),
+				Arrays.asList("firstName2", "lastName2", "email2"),
+				Arrays.asList("firstName3", "lastName3", "email3"));
+		//log.info(namesNested);
+		
+		// convert the Stream<List<String>> to a simpler Stream<String> – using the flatMap() API.
+		List<String> namesFlatStream = namesNested.stream()
+				.flatMap(Collection::stream)
+				.collect(Collectors.toList());
+		log.info(namesFlatStream);
+		
+		assertEquals(namesFlatStream.size(), namesNested.size() * 3);
+	}
+	
+	@Test
+	void whenUsingPeek_thenApplyNewfieldValues() {
+		
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+		
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		
+		// peek() can be useful for performing multiple operations on each element of the stream before any terminal operation is applied.
+		instructorList.stream()
+			.peek(e -> e.setFirstName(e.getFirstName() + e.getFirstName()))
+			.peek(e -> e.setLastName(e.getLastName() + e.getLastName()))
+			.peek(log::info)
+			.collect(Collectors.toList());
+
+		assertTrue(instructorList.stream().anyMatch(i ->
+			i.getLastName().equals("lastName1lastName1") && i.getFirstName().equals("firstName1firstName1")
+		));	
+	}
+	
+	@Test
+	void whenLimitInfiniteStream_thenGetFiniteElements() {
+		Stream<Integer> infiniteStream = Stream.iterate(2, i -> i * 2);
+		
+		List<Integer> collect = infiniteStream
+			.skip(2)
+			.limit(8)
+			.collect(Collectors.toList());
+		
+		assertEquals(collect, Arrays.asList(8, 16, 32, 64, 128, 256, 512, 1024));
+	}
+	
+	@Test
+	void whenFindFirst_thenGetFirstInstructorInStream() {
+		Integer[] ids = { 1, 2, 3, 4 };
+		
+		// find first with salary>500
+		Optional<Instructor> instructor = Stream.of(ids)
+				.map(instructorRepository::findById)
+				.filter(e -> e.get() != null)
+				.filter(e -> e.get().getSalary() > 500)
+				.findFirst()
+				.orElse(null);
+		
+		assertEquals(instructor.get().getSalary(), new Double(1000));
+	}
+
+	@Test
+	void whenSortStream_thenGetSortedStream() {
+		InstructorVO[] instructorArray = {
+			new InstructorVO("Tito", "lastName2", "email2"),
+			new InstructorVO("Zlata", "lastName1", "email1"),
+			new InstructorVO("Gina", "lastName3", "email3")
+		};
+
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		instructorList.stream().forEach(i -> log.info(i));
+		
+		// sort by firstame
+		List<InstructorVO> sortedInstructorList = instructorList.stream()
+				.sorted((i1, i2) -> i1.getFirstName().compareTo(i2.getFirstName()))
+				.collect(Collectors.toList());
+			
+		assertEquals(sortedInstructorList.get(0).getFirstName(), "Gina");
+		assertEquals(sortedInstructorList.get(1).getFirstName(), "Tito");
+		assertEquals(sortedInstructorList.get(2).getFirstName(), "Zlata");
+	}
+	
+	@Test
+	void whenCollectByJoining_thenGetJoinedString() {
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		instructorList.stream().forEach(i -> log.info(i));
+		
+		// create a string of all firstNames
+		String instructorNames = instructorList.stream()
+				 .map(InstructorVO::getFirstName)
+				 .collect(Collectors.joining(", "))
+				 .toString();
+			    
+		assertEquals(instructorNames, "firstName2, firstName1, firstName3");
+	}
+	
+	@Test
+	void whenCollectBySet_thenGetSet() {
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		instructorList.stream().forEach(i -> log.info(i));
+		
+		// set of first names
+		Set<String> instructorNames = instructorList.stream()
+				 .map(InstructorVO::getFirstName)
+				 .collect(Collectors.toSet());
+			    
+		assertEquals(instructorNames.size(), 3);
+	}
+	
+	@Test
+	void whenToVectorCollection_thenGetVector() {
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+
+		List<InstructorVO> instructorList = Arrays.asList(instructorArray);
+		instructorList.stream().forEach(i -> log.info(i));
+		
+		Vector<String> instructorNames = instructorList.stream()
+				 .map(InstructorVO::getFirstName)
+				 .collect(Collectors.toCollection(Vector::new));
+		log.info(instructorList);
+		
+		assertEquals(instructorNames.size(), 3);
+	}
+	
+	@Test
+	void whenApplyMatch_thenReturnBoolean() {
+		List<Integer> intList = Arrays.asList(2, 4, 5, 6, 8);
+		
+		boolean allEven = intList.stream().allMatch(i -> i % 2 == 0); // check if true for all elements 
+		boolean oneEven = intList.stream().anyMatch(i -> i % 2 == 0); // check if true for any element
+		boolean noneMultipleOfThree = intList.stream().noneMatch(i -> i % 3 == 0); // check if no element is matching this predicate
+		
+		assertEquals(allEven, false);
+		assertEquals(oneEven, true);
+		assertEquals(noneMultipleOfThree, false);
+	}
+	
+	@Test
+	void whenStreamPartition_thenGetMap() {
+		List<Integer> intList = Arrays.asList(2, 4, 5, 6, 8);
+		
+		// the stream is partitioned into a Map, with even and odds stored as true and false keys.
+		Map<Boolean, List<Integer>> isEven = intList.stream()
+				.collect(Collectors.partitioningBy(i -> i % 2 == 0));
+		
+		for (Boolean key : isEven.keySet()) {
+	        log.info(key + ":" + isEven.get(key));
+	    }
+		
+		assertEquals(isEven.get(true).size(), 4);
+		assertEquals(isEven.get(false).size(), 1);
+	}
+	
+	@Test
+	void whenStreamGroupingBy_thenGetMap() {
+		
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+		
+		// grouping based on the last character in the firstName field (1, 2, 3)
+		Map<Character, List<InstructorVO>> groupByAlphabet = Arrays.asList(instructorArray).stream()
+				.collect(Collectors.groupingBy(e -> Character.valueOf(e.getFirstName().charAt(9))));
+		
+		for (Character key : groupByAlphabet.keySet()) {
+	        log.info(key + ":" + groupByAlphabet.get(key));
+	    }
+		
+	    assertEquals(groupByAlphabet.get('1').get(0).getFirstName(), "firstName1");
+	    assertEquals(groupByAlphabet.get('2').get(0).getFirstName(), "firstName2");
+	    assertEquals(groupByAlphabet.get('3').get(0).getFirstName(), "firstName3");
+	}
+	
+	@Test
+	void whenStreamMapping_thenGetMap() {
+		
+		InstructorVO[] instructorArray = {
+			new InstructorVO("firstName2", "lastName2", "email2"),
+			new InstructorVO("firstName1", "lastName1", "email1"),
+			new InstructorVO("firstName3", "lastName3", "email3")
+		};
+		
+		// maps the stream element InstructorVO into just the instructor id (Integer) using the getId() mapping function. 
+		// These ids are still grouped based on the initial character of employee first name.
+		Map<Character, List<Integer>> idGroupedByAlphabet = Arrays.asList(instructorArray).stream()
+				.collect(
+					Collectors.groupingBy(e -> Character.valueOf(e.getFirstName().charAt(9)), 
+					Collectors.mapping(InstructorVO::getId, Collectors.toList())));
+		
+		for (Character key : idGroupedByAlphabet .keySet()) {
+	        log.info(key + ":" + idGroupedByAlphabet .get(key));
+	    }
+		
+	    assertEquals(idGroupedByAlphabet.get('1').get(0), 0);
+	    assertEquals(idGroupedByAlphabet.get('2').get(0), 0);
+	    assertEquals(idGroupedByAlphabet.get('3').get(0), 0);
+	}
+	
+	@Test
+	void whenStreamGroupingAndReducing_thenGetMap() {
+		
+		InstructorVO[] instructorArray = {
+			new InstructorVO("Toninho", "lastName2", "email2"),
+			new InstructorVO("Tompa", "lastName3", "email3"),
+			new InstructorVO("Maroni", "lastName1", "email1"),
+			new InstructorVO("Maki", "lastName4", "email4")
+		};
+		
+		Comparator<InstructorVO> byNameLength = Comparator.comparing(InstructorVO::getFirstName);
+		
+		// group the instructors based on the initial character of their first name
+		// Within each group, find the instructor with the longest name
+		Map<Character, Optional<InstructorVO>> longestNameByAlphabet = Arrays.asList(instructorArray).stream()
+				.collect(
+					Collectors.groupingBy(e -> Character.valueOf(e.getFirstName().charAt(0)),
+					Collectors.reducing(BinaryOperator.maxBy(byNameLength))));
+		
+		for (Character key : longestNameByAlphabet.keySet()) {
+	        log.info(key + ":" + longestNameByAlphabet.get(key));
+	    }
+		
+	    assertEquals("Toninho", longestNameByAlphabet.get('T').get().getFirstName());
+	    assertEquals("Maroni", longestNameByAlphabet.get('M').get().getFirstName());
+	}
+	
 	private void validateExistingInstructor(InstructorVO instructorVO) {
 		
 		assertNotNull(instructorVO,"instructorVO null");
@@ -543,11 +888,12 @@ public class InstructorServiceTest extends ApplicationTest {
 		// assert non-existing instructor
 		Exception exception = assertThrows(ObjectNotFoundException.class, () -> {
 			instructorService.findById(22);
+			
 		});
 		
 		String expectedMessage = String.format(MessagePool.getMessage(ValidatorCodes.ERROR_CODE_INSTRUCTOR_ID_NOT_FOUND.getMessage()), 22);
 		String actualMessage = exception.getMessage();
-
+		
 	    assertTrue(actualMessage.contains(expectedMessage));
 	}
 	
